@@ -8,16 +8,16 @@ template = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.o
   <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
   <title>Unittests</title>
   <script src="py-builtins.js" type="text/javascript"></script>
-  <script src="jquery-1.6.1.js" type="text/javascript"></script>
+  <script src="jquery-1.7.2.js" type="text/javascript"></script>
 </head>
 <style type="text/css">
   body { font-family: monospace; }
   table { width: 40em; margin: 0 auto; background-color: #EEE; border-radius: 1em; padding: 1em; }
 </style>
 <script type="text/javascript">
-  $(document).ready(function() {
+  window.addEventListener('load', function() {
     out = ""
-    py_builtins.print = function() {
+    __builtins__.PY$print = function() {
       var args = tuple(Array.prototype.slice.call(arguments));
       out += js(str(" ").PY$join(args));
       out += "\\n";
@@ -33,7 +33,8 @@ template = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.o
     // COUNTER_var_ is named funny because it must not collide with
     // the namespace of any test case
     for (var COUNTER_var_ in tests) {
-      out = "";
+      var out = "";
+      
       try {
         eval("(function() {\\n" + tests[COUNTER_var_] + "})();");
         if (out == res[COUNTER_var_]) {
