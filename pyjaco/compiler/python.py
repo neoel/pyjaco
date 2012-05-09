@@ -26,7 +26,8 @@
 ## OTHER DEALINGS IN THE SOFTWARE.
 ##
 ######################################################################
-
+        
+        
 import ast
 import pyjaco.compiler
 from pyjaco.compiler import JSError
@@ -74,11 +75,10 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         "LtE": "le",
     }
 
-    def __init__(self, opts):
-        super(Compiler, self).__init__(opts)
+    def __init__(self, opts, scope):
+        super(Compiler, self).__init__(opts, scope)
         self.future_division = False
         self.opts = opts
-        self._funcs = []
 
     def stack_destiny(self, names, skip):
         for name in reversed(self.stack[:-skip]):
@@ -89,10 +89,14 @@ class Compiler(pyjaco.compiler.BaseCompiler):
 
     def visit_Name(self, node):
         name = self.name_map.get(node.id, node.id)
-
-        if (name in self.builtin) and not ((name in self._scope) or (name in self._funcs)):
+        
+        scopetype = self.scope.find_scope_for(name)
+        print "Found scopetype for", name, scopetype
+        if scopetype == 'builtin':
             name = "__builtins__.PY$" + name
-
+        elif scopetype == 'module':
+            name = "mod.PY$" + name
+        
         return name
 
     def visit_Return(self, node):
@@ -102,7 +106,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             return ["return None;"]
 
     def visit_Global(self, node):
-        self._scope.extend(node.names)
+        self.scope.variables.extend(node.names)
         return []
 
     def visit_FunctionDef(self, node):
@@ -122,14 +126,18 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             offset = 1
         else:
             offset = 0
-
-        self._scope = [arg.id for arg in node.args.args]
-        self._funcs.append(node.name)
+            
+        self.scope.funcs.append(node.name)
+        print "added function to scope", self.scope.type
+        self.enter_scope("function")
+        self.scope.variables.extend([arg.id for arg in node.args.args])
 
         inclass = self.stack_destiny(["ClassDef", "FunctionDef"], 2) in ["ClassDef"]
 
         if inclass:
             js = ["function() {"]
+        elif self.scope.parent_type() == "module":
+            js = ["mod.PY$%s = function() {" % (node.name)]
         else:
             js = ["var %s = function() {" % (node.name)]
 
@@ -176,14 +184,14 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         for stmt in node.body:
             js.extend(self.indent(self.visit(stmt)))
 
-        self._scope = []
+        self.leave_scope()
+        
         if not (node.body and isinstance(node.body[-1], ast.Return)):
             js.append("return None;")
         js.append("}")
 
         for dec in node.decorator_list:
             js.extend(["%s.PY$%s = %s(%s.PY$__getattr__('%s'));" % (self.heirar, node.name, self.visit(dec), self.heirar, node.name)])
-
         return js
 
     def visit_ClassDef(self, node):
@@ -197,17 +205,22 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             raise JSError("Multiple inheritance not supported")
 
         class_name = node.name
-        #self._classes remembers all classes defined
-        self._classes[class_name] = node
-
+        #self.scope.classes remembers all classes defined
+        self.scope.classes[class_name] = node
+        
         use_prototypes = "false" if any([isinstance(x, ast.FunctionDef) and x.name == "__call__" for x in node.body]) else "true"
         if len(self._class_name) > 0:
             js.append("__inherit(%s, '%s', %s);" % (bases[0], class_name, use_prototypes))
+        elif self.scope.type == "module":
+            js.append("mod.PY$%s = __inherit(%s, '%s', %s);" % (class_name, bases[0], class_name, use_prototypes))
         else:
             js.append("var %s = __inherit(%s, '%s', %s);" % (class_name, bases[0], class_name, use_prototypes))
 
+            
+        self.enter_scope("class")
+        
         self._class_name.append(class_name)
-        heirar = ".PY$".join(self._class_name + [])
+        heirar = "mod.PY$" + ".PY$".join(self._class_name + [])
         for stmt in node.body:
             if isinstance(stmt, ast.Assign):
                 value = self.visit(stmt.value)
@@ -226,7 +239,9 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             else:
                 raise JSError("Unsupported class data: %s" % stmt)
         self._class_name.pop()
+        self.leave_scope()
 
+        print "added class", self.scope.classes
         return js
 
     def visit_Delete(self, node):
@@ -245,7 +260,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             raise JSError("Unsupported delete type: %s" % node)
 
         return js
-
+   
     def visit_AssignSimple(self, target, value):
         if isinstance(target, (ast.Tuple, ast.List)):
             dummy = self.alloc_var()
@@ -255,8 +270,8 @@ class Compiler(pyjaco.compiler.BaseCompiler):
                 var = self.visit(target)
                 declare = ""
                 if isinstance(target, ast.Name):
-                    if not (var in self._scope):
-                        self._scope.append(var)
+                    if not self.scope.contains(var):
+                        self.scope.variables.append(var)
                         declare = "var "
                 js.append("%s%s = %s.PY$__getitem__(%d);" % (declare, var, dummy, i))
         elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Index):
@@ -265,19 +280,22 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Slice):
             # found slice assignmnet
             js = ["%s.PY$__setslice__(%s, %s, %s);" % (self.visit(target.value), self.visit(target.slice.lower), self.visit(target.slice.upper), value)]
-        else:
-            if isinstance(target, ast.Name):
-                var = target.id
-                if not (var in self._scope):
-                    self._scope.append(var)
-                    declare = "var "
+        elif isinstance(target, ast.Name):
+            var = target.id
+            if not self.scope.contains(var):
+                self.scope.variables.append(var)
+                if self.scope.type == "module":
+                    declare = "mod.PY$"
                 else:
-                    declare = ""
-                js = ["%s%s = %s;" % (declare, var, value)]
-            elif isinstance(target, ast.Attribute):
-                js = ["%s.PY$__setattr__('%s', %s);" % (self.visit(target.value), str(target.attr), value)]
+                    declare = "var "
             else:
-                raise JSError("Unsupported assignment type")
+                declare = ""
+            js = ["%s%s = %s;" % (declare, var, value)]
+        elif isinstance(target, ast.Attribute):
+            js = ["%s.PY$__setattr__('%s', %s);" % (self.visit(target.value), str(target.attr), value)]
+        else:
+            raise JSError("Unsupported assignment type")
+           
         return js
 
     def visit_AugAssign(self, node):
@@ -416,7 +434,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         for n in node.body:
             js.extend(self.indent(self.visit(n)))
         err = self.alloc_var()
-        self._exceptions.append(err)
+        self.scope.exceptions.append(err)
         js.append("} catch (%s) {" % err)
         catchall = False
         for i, n in enumerate(node.handlers):
@@ -448,7 +466,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             js.append("else { throw %s; }" % err);
 
         js.append("};")
-        self._exceptions.pop()
+        self.scope.exceptions.pop()
         return js
 
     def visit_TryFinally(self, node):
@@ -594,7 +612,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         assert node.inst is None
         assert node.tback is None
         if not node.type:
-            return ["throw %s;" % self._exceptions[-1]]
+            return ["throw %s;" % self.scope.exceptions[-1]]
         else:
             if isinstance(node.type, ast.Name) and node.type.id in self.builtin:
                 return ["throw %s();" % self.visit(node.type)]

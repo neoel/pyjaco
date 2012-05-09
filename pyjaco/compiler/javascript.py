@@ -26,7 +26,7 @@
 ## OTHER DEALINGS IN THE SOFTWARE.
 ##
 ######################################################################
-
+        
 import pyjaco.compiler
 import ast
 from pyjaco.compiler import JSError
@@ -69,8 +69,8 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             'IsNot' : "is not", # Not implemented yet
     }
 
-    def __init__(self, opts):
-        super(Compiler, self).__init__(opts)
+    def __init__(self, opts, scope):
+        super(Compiler, self).__init__(opts, scope)
         self.name_map = self.name_map.copy()
         self.name_map.update({"True": "true", "False": "false", "None": "null"})
         self.opts = opts
@@ -89,14 +89,14 @@ class Compiler(pyjaco.compiler.BaseCompiler):
 
     def visit_Name(self, node):
         name = self.name_map.get(node.id, node.id)
-
-        if (name in self.builtin) and not (name in self._scope):
+        #raise NotImplementedError("Todo")
+        if (name in self.builtin) and not (name in self.scope.variables):
             name = "__builtins__." + name
 
         return name
 
     def visit_Global(self, node):
-        self._scope.extend(node.names)
+        self.scope.variables.extend(node.names)
         return []
 
     def visit_FunctionDef(self, node):
@@ -119,8 +119,8 @@ class Compiler(pyjaco.compiler.BaseCompiler):
                 var = self.visit(target)
                 declare = ""
                 if isinstance(target, ast.Name):
-                    if not (var in self._scope):
-                        self._scope.append(var)
+                    if not self.scope.contains(var):
+                        self.scope.variables.append(var)
                         declare = "var "
                 js.append("%s%s = %s[%d];" % (declare, var, part, i))
         elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Index):
@@ -135,8 +135,8 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         else:
             var = self.visit(target)
             if isinstance(target, ast.Name):
-                if not (var in self._scope):
-                    self._scope.append(var)
+                if not self.scope.contains(var):
+                    self.scope.variables.append(var)
                     declare = "var "
                 else:
                     declare = ""

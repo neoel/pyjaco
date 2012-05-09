@@ -55,8 +55,8 @@ class Compiler(pyjaco.compiler.BaseCompiler):
 
     def __init__(self, jsvars, opts):
         super(Compiler, self).__init__(opts)
-        self.comp_py = pyjaco.compiler.python.Compiler(opts)
-        self.comp_js = pyjaco.compiler.javascript.Compiler(opts)
+        self.comp_py = pyjaco.compiler.python.Compiler(opts, self.scope)
+        self.comp_js = pyjaco.compiler.javascript.Compiler(opts, self.scope)
 
         self.visit_py = self.comp_py.visit
         self.visit_js = self.comp_js.visit
@@ -100,8 +100,10 @@ class Compiler(pyjaco.compiler.BaseCompiler):
 
         name = 'visit_' + self.name(node)
         if hasattr(self, name) and multiplex:
+            #print "Visiting node", self.name(node), "in self multiplexer->BaseCompiler"
             res = getattr(self, name)(node)
         else:
+            #print "Visiting node", self.name(node), "in visit_current"
             res = self.visit_current(node)
 
         if mode:
@@ -140,7 +142,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             return self.get_mode(node.target)
         elif isinstance(node, ast.Subscript):
             return self.get_mode(node.value)
-
+    
     def visit_Assign(self, node):
         return self.visit(node, False)
 
