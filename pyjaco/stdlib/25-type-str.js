@@ -141,11 +141,9 @@ basestring.PY$__lt__ = function(s) {
 };
 
 basestring.PY$__contains__ = function(item) {
-    for (var index in this.obj) {
-        if (item === this.obj[index]) {
-            return True;
-        }
-    }
+	if (this.obj.indexOf(item) != -1) {
+		return True;
+	}
 
     return False;
 };
