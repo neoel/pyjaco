@@ -595,8 +595,7 @@ __builtins__.PY$round = function(num) {
 __builtins__.PY$set = $PY.c_nif;
 
 __builtins__.PY$setattr = function(obj, name, value) {
-    name = js(name);
-    obj["PY$" + name] = value;
+    obj.PY$__setattr__(name, value);
 };
 
 __builtins__.PY$sorted = function(iterable) {
