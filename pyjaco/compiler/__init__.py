@@ -30,6 +30,84 @@
 import ast
 import inspect
 
+class Scope(object):
+    
+    def __init__(self, type):
+        self.type = type
+        
+        self.variables = []
+        self.classes = {}
+        self.exceptions = []
+        self.funcs = []
+        
+        self._scopes = []
+        
+        self = object()
+        
+        
+    def enter(self, type):
+        print "--> entering scope", type
+        self._scopes.append({
+            'variables'  : self.variables,
+            'classes'    : self.classes,
+            'exceptions' : self.exceptions,
+            'funcs'      : self.funcs,
+            'type'       : self.type
+        })
+        
+        self.variables = []
+        self.classes = {}
+        self.exceptions = []
+        self.funcs = []
+        self.type = type
+        
+        return self
+        
+    def leave(self):
+        print "<-- Leaving scope", self.type
+        s = self._scopes.pop(-1)
+        
+        self.variables  = s['variables']
+        self.classes    = s['classes']
+        self.exceptions = s['exceptions']
+        self.funcs      = s['funcs']
+        
+        self.type       = s['type']
+        
+        return self
+        
+    def parent_type(self):
+        return self._scopes[-1]['type']
+        
+    def contains(self, name):
+        
+        
+        if (name in self.variables) or (name in self.classes) or (name in self.funcs):
+            return True
+       
+        for scope in self._scopes[::-1]:
+            if name in scope['variables']:
+                return True
+            elif name in scope['classes']:
+                return True
+            elif name in scope['funcs']:
+                return True
+        
+        
+        
+    def find_scope_for(self, name):
+        """Search the scope in which name is first encountered"""
+        
+        
+        if (name in self.variables) or (name in self.classes) or (name in self.funcs):
+            return self.type
+       
+        for scope in self._scopes[::-1]:
+            if (name in scope['variables']) or (name in scope['classes']) or (name in scope['funcs']):
+                return scope['type']
+                
+        
+
 class JSError(Exception):
     pass
 
@@ -44,16 +122,26 @@ class BaseCompiler(object):
     import __builtin__
     builtin = set([x for x in dir(__builtin__) if not x.startswith("__")])
 
-    def __init__(self, opts):
+    def __init__(self, opts, scope=None):
         self.index_var = 0
         # This is the name of the classes that we are currently in:
         self._class_name = []
-
-        # This lists all variables in the local scope:
-        self._scope = []
-        self._classes = {}
-        self._exceptions = []
+        
+        # Keep track of the different scopes.
+        if scope:
+            self.scope = scope
+        else:
+            self.scope = Scope('builtin')
+            self.scope.variables.extend(self.builtin)
+            # This lists all variables in the local scope:
+        
         self.opts = opts
+        
+    def enter_scope(self, type):
+        self.scope = self.scope.enter(type)
+    
+    def leave_scope(self):
+        self.scope = self.scope.leave()
 
     def alloc_var(self):
         self.index_var += 1
@@ -104,10 +192,13 @@ class BaseCompiler(object):
 
     def visit_Module(self, node):
         module = []
+        
+        self.enter_scope("module")
 
         for stmt in node.body:
             module.extend(self.visit(stmt))
 
+        self.leave_scope()
         return module
 
     def visit_Assert(self, node):
