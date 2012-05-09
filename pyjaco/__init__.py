@@ -32,6 +32,8 @@ import re
 import StringIO
 import ast
 import inspect
+import imp
+
 try:
     from _version import get_version, parse_version
 except ImportError:
@@ -146,8 +148,15 @@ class Compiler(object):
     def append_class(self, code, name = None):
         self.append_string(inspect.getsource(code), name)
 
-    def append_module(self, module, classes, name = None):
-        self.append_raw(self.compile_module(module, classes, name))
+    def append_module(self, module, name = "__main__"):
+        if isinstance(module, str):
+            file = imp.find_module(module)[0]
+        else:
+            file = module
+        if file:
+            self.append_raw(self.compile_module(file.read(), file.name, name))
+        else:
+            raise ImportError("Could not find source file of module {}".format(module))
 
     def append_data(self, key, value, name = None):
         self.append_raw(self.compile_data(key, value))
@@ -166,14 +175,15 @@ class Compiler(object):
     def compile_class(self, code, name = None):
         return self.compile_string(inspect.getsource(code), name)
 
-    def compile_module(self, module, classes, name = None):
-        res = [self.format_name(name), "var %s = object();" % module]
-        for cls in classes:
-            res.append(self.format_name("Class %s.%s" % (module, cls.__name__)))
-            res.append("%s.PY$__setattr__('%s', function() {" % (module, cls.__name__))
-            res.append(self.compile_class(cls))
-            res.append("return %s}());" % (cls.__name__))
-            res.append("")
+    def compile_module(self, code, filename, name = None):
+        res = [
+            "$PY.addmodule('{name}', function () {{".format(name=name),
+            self.format_name(name),
+            "var mod = module('{name}', {filename});".format(name=name, filename=filename),
+            self.compile_string(code),
+            "return mod;",
+            "});"
+        ]
         return "\n".join(res)
 
     def compile_data(self, key, value):
