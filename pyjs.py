@@ -72,7 +72,7 @@ def compile_file(infile, outfile, options):
         outfile.write('load("py-builtins.js");\n')
 
     c = Compiler()
-    c.append_string(infile.read())
+    c.append_module(infile)
     outfile.write(str(c))
 
 def run_once(input_filenames, options):
