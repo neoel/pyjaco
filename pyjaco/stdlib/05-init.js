@@ -24,7 +24,19 @@
   OTHER DEALINGS IN THE SOFTWARE.
 **/
 
-var $PY = {};
+var $PY = {
+    available_modules : {},
+    loaded_modules : {}
+};
+
+$PY.add_module = function (name, module_body) {
+    
+    if (name === "__main__") {
+        module_body();
+    } else {
+        $PY.available_modules[name] = module_body;
+    }
+};
 
 $PY.prng = 42;
 

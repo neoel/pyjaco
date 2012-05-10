@@ -190,14 +190,19 @@ class BaseCompiler(object):
         values = ", ".join(values)
         return ["__builtins__.PY$print(%s);" % values]
 
-    def visit_Module(self, node):
-        module = []
-        
+    def visit_Module(self, node, name, filename=None):
         self.enter_scope("module")
-
+        
+        module = ["$PY.add_module('{name}', function () {{".format(name=name),
+            "    var mod = module('{name}', '{filename}');".format(name=name, filename=filename)]
+        
         for stmt in node.body:
-            module.extend(self.visit(stmt))
+            module.extend(self.indent(self.visit(stmt)))
 
+        module.extend([
+            "    return mod;",
+            "});"
+        ])
         self.leave_scope()
         return module
 
