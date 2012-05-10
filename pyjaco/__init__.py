@@ -176,14 +176,7 @@ class Compiler(object):
         return self.compile_string(inspect.getsource(code), name)
 
     def compile_module(self, code, filename, name = None):
-        res = [
-            "$PY.addmodule('{name}', function () {{".format(name=name),
-            self.format_name(name),
-            "var mod = module('{name}', {filename});".format(name=name, filename=filename),
-            self.compile_string(code),
-            "return mod;",
-            "});"
-        ]
+        res = self.compiler.visit_Module(ast.parse(code), name, filename)
         return "\n".join(res)
 
     def compile_data(self, key, value):
