@@ -29,12 +29,23 @@ var $PY = {
     loaded_modules : {}
 };
 
-$PY.add_module = function (name, module_body) {
+$PY.load_lazy = undefined;
+
+$PY.add_module = function (name, filename, module_body) {
     
     if (name === "__main__") {
-        module_body();
+        // create a module instance
+        var mod = module(name, filename);
+        
+        window.addEventListener("load", function () {
+            module_body(mod);
+        });
     } else {
-        $PY.available_modules[name] = module_body;
+        $PY.available_modules[name] = {
+            name: name,
+            filename : filename,
+            body: module_body
+        }
     }
 };
 
