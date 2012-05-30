@@ -483,18 +483,44 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         js.append("if (%s) { throw %s; }" % (exc_store, exc_store))
         return js
 
-    def _visit_Import(self, node):
-        pass
+    def visit_Import(self, node):
+        res = []
+        
+        for name in node.names:
+            if name.asname:
+                self.scope.variables.append(name.asname)
+                res.append("mod.__import('{module}', '{asname}');".format(module=name.name, asname=name.asname))
+            else:
+                self.scope.variables.append(name.name)
+                res.append("mod.__import('{module}');".format(module=name.name))
+        return res
 
     def visit_ImportFrom(self, node):
-        if node.module == "__future__":
-            if len(node.names) == 1 and node.names[0].name == "division":
-                self.future_division = True
+        
+        res = []
+        
+        module = node.module
+        
+        for name in node.names:
+            r = ""
+            
+            if name.asname:
+                self.scope.variables.append(name.asname)
+                r += "mod.__import_from('{f}', '{i}', '{asname}');".format(f=module, i=name.name, asname=name.asname)
             else:
-                raise JSError("Unknown import from __future__: %s" % node.names[0].name)
-        else:
-            raise JSError("Import only supports from __future__ import foo")
-        return []
+                self.scope.variables.append(name.name)
+                r += "mod.__import_from('{f}', '{i}')".format(f=module, i=name.name)
+                
+            res.append(r)
+        
+        #if node.module == "__future__":
+            #if len(node.names) == 1 and node.names[0].name == "division":
+                #self.future_division = True
+            #else:
+                #raise JSError("Unknown import from __future__: %s" % node.names[0].name)
+        #else:
+            #raise JSError("Import only supports from __future__ import foo")
+        return res
 
     def visit_Lambda(self, node):
         node_args = self.visit(node.args)
