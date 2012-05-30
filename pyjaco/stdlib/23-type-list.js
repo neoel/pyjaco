@@ -147,13 +147,13 @@ list.PY$pop = function() {
 list.PY$sort = function() {
     var __kwargs = __kwargs_get(arguments);
     var cmp = js(arguments[0]);
-    if (cmp === undefined) { cmp = __kwargs.cmp === undefined ? function(a, b) { return js(a.PY$__cmp__(b));} : __kwargs.cmp; };
+    if (cmp === undefined) { cmp = (__builtins__.PY$bool(__kwargs.cmp) == false) ? function(a, b) { return js(a.PY$__cmp__(b));} : __kwargs.cmp; };
 
     var key = js(arguments[1]);
-    if (key === undefined) { key = __kwargs.key === undefined ? function(x) { return x; } : __kwargs.key; };
+    if (key === undefined) { key = (__builtins__.PY$bool(__kwargs.key) == false) ? function(x) { return x; } : __kwargs.key; };
 
     var reverse = arguments[2];
-    if (reverse === undefined) { reverse = __kwargs.reverse === undefined ? False : __kwargs.reverse; };
+    if (reverse === undefined) { reverse = (__builtins__.PY$bool(__kwargs.reverse) == false) ? False : __kwargs.reverse; };
 
     var direction = reverse === True ? -1 : 1;
 
