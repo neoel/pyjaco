@@ -59,9 +59,10 @@ object.PY$__create__ = function(cls) {
     var args = Array.prototype.slice.call(arguments, 1);
 
     var obj = function() {
+        var args = Array.prototype.slice.call(arguments);
         var x = cls.PY$__call__;
         if (x !== undefined) {
-            return cls.PY$__call__.apply(cls, args);
+            return cls.PY$__call__.apply(obj, args);
         } else {
             throw __builtins__.PY$AttributeError("Object " + js(cls.PY$__name__) + " does not have __call__ method");
         }
