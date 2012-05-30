@@ -43,10 +43,9 @@ class Scope(object):
         self._scopes = []
         
         self = object()
-        
-        
+    
     def enter(self, type):
-        print "--> entering scope", type
+        
         self._scopes.append({
             'variables'  : self.variables,
             'classes'    : self.classes,
@@ -64,7 +63,7 @@ class Scope(object):
         return self
         
     def leave(self):
-        print "<-- Leaving scope", self.type
+        
         s = self._scopes.pop(-1)
         
         self.variables  = s['variables']
@@ -80,8 +79,6 @@ class Scope(object):
         return self._scopes[-1]['type']
         
     def contains(self, name):
-        
-        
         if (name in self.variables) or (name in self.classes) or (name in self.funcs):
             return True
        
@@ -92,12 +89,9 @@ class Scope(object):
                 return True
             elif name in scope['funcs']:
                 return True
-        
-        
-        
+    
     def find_scope_for(self, name):
         """Search the scope in which name is first encountered"""
-        
         
         if (name in self.variables) or (name in self.classes) or (name in self.funcs):
             return self.type
@@ -105,7 +99,37 @@ class Scope(object):
         for scope in self._scopes[::-1]:
             if (name in scope['variables']) or (name in scope['classes']) or (name in scope['funcs']):
                 return scope['type']
+    
+    def fetch_name(self, name):
+        
+        scopetype = self.find_scope_for(name)
+        
+        if scopetype == 'builtin':
+            name =  "__builtins__.PY$" + name
+        elif scopetype == 'module':
+            name = "mod.PY$" + name
+            
+        return name
+         
+    def remove(self, name):
+        
+        if   name in self.variables:
+            self.variables.remove(name)
+        elif name in self.classes:
+            del self.classes[name]
+        elif name in self.funcs:
+            self.funcs.remove(name)
+            
+        else:
+            for scope in self._scopes[::-1]:
                 
+                if name in scope['variables']:
+                    scope['variables'].remove(name)
+                elif name in scope['classes']:
+                    del scope['classes'][name]
+                elif name in scope['funcs']:
+                    scope['funcs'].remove(name)
+       
         
 
 class JSError(Exception):
