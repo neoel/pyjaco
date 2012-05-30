@@ -90,14 +90,7 @@ class Compiler(pyjaco.compiler.BaseCompiler):
     def visit_Name(self, node):
         name = self.name_map.get(node.id, node.id)
         
-        scopetype = self.scope.find_scope_for(name)
-        print "Found scopetype for", name, scopetype
-        if scopetype == 'builtin':
-            name = "__builtins__.PY$" + name
-        elif scopetype == 'module':
-            name = "mod.PY$" + name
-        
-        return name
+        return self.scope.fetch_name(name)
 
     def visit_Return(self, node):
         if node.value is not None:
@@ -128,7 +121,6 @@ class Compiler(pyjaco.compiler.BaseCompiler):
             offset = 0
             
         self.scope.funcs.append(node.name)
-        print "added function to scope", self.scope.type
         self.enter_scope("function")
         self.scope.variables.extend([arg.id for arg in node.args.args])
 
@@ -206,21 +198,28 @@ class Compiler(pyjaco.compiler.BaseCompiler):
 
         class_name = node.name
         #self.scope.classes remembers all classes defined
-        self.scope.classes[class_name] = node
+        #self.scope.classes[class_name] = node
+        
+        self.scope.variables.append(class_name)
+        
+        if self.scope.type == "module":
+            start = "mod.PY$"
+        else:
+            start = ""
         
         use_prototypes = "false" if any([isinstance(x, ast.FunctionDef) and x.name == "__call__" for x in node.body]) else "true"
         if len(self._class_name) > 0:
-            js.append("__inherit(%s, '%s', %s);" % (bases[0], class_name, use_prototypes))
+            js.append("__inherit(%s, '%s', %s);" % (self.scope.fetch_name(bases[0]), class_name, use_prototypes))
         elif self.scope.type == "module":
-            js.append("mod.PY$%s = __inherit(%s, '%s', %s);" % (class_name, bases[0], class_name, use_prototypes))
+            js.append(start+"%s = __inherit(%s, '%s', %s);" % (class_name, self.scope.fetch_name(bases[0]), class_name, use_prototypes))
         else:
-            js.append("var %s = __inherit(%s, '%s', %s);" % (class_name, bases[0], class_name, use_prototypes))
+            js.append("var %s = __inherit(%s, '%s', %s);" % (class_name, self.scope.fetch_name(bases[0]), class_name, use_prototypes))
 
             
         self.enter_scope("class")
         
         self._class_name.append(class_name)
-        heirar = "mod.PY$" + ".PY$".join(self._class_name + [])
+        heirar = start + ".PY$".join(self._class_name + [])
         for stmt in node.body:
             if isinstance(stmt, ast.Assign):
                 value = self.visit(stmt.value)
@@ -241,7 +240,6 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         self._class_name.pop()
         self.leave_scope()
 
-        print "added class", self.scope.classes
         return js
 
     def visit_Delete(self, node):
@@ -255,7 +253,8 @@ class Compiler(pyjaco.compiler.BaseCompiler):
         elif isinstance(node, ast.Attribute):
             js = "%s.PY$__delattr__('%s');" % (self.visit(node.value), node.attr)
         elif isinstance(node, ast.Name):
-            raise JSError("Javascript does not support deleting variables. Cannot compile")
+            js = "delete" + self.scope.find_scope_for(node.id) + ';'
+            self.scope.remove(node.id)
         else:
             raise JSError("Unsupported delete type: %s" % node)
 

@@ -8,6 +8,9 @@ tests/*/*.py.js
 tests/*.err
 tests/*.out
 .d8_history
+.*
+*~
+
 
 # Packages
 *.egg

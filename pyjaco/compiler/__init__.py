@@ -217,16 +217,12 @@ class BaseCompiler(object):
     def visit_Module(self, node, name, filename=None):
         self.enter_scope("module")
         
-        module = ["$PY.add_module('{name}', function () {{".format(name=name),
-            "    var mod = module('{name}', '{filename}');".format(name=name, filename=filename)]
+        module = ["$PY.add_module('{name}', '{filename}', function (mod) {{".format(name=name, filename=filename)]
         
         for stmt in node.body:
             module.extend(self.indent(self.visit(stmt)))
 
-        module.extend([
-            "    return mod;",
-            "});"
-        ])
+        module.extend(["});"])
         self.leave_scope()
         return module
 

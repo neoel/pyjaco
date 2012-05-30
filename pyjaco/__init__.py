@@ -154,7 +154,7 @@ class Compiler(object):
         else:
             file = module
         if file:
-            self.append_raw(self.compile_module(file.read(), file.name, name))
+            self.append_raw(self.compile_module(file.read(), file.name, name), name)
         else:
             raise ImportError("Could not find source file of module {}".format(module))
 
