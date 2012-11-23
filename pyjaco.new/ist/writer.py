@@ -1,3 +1,8 @@
+"""
+Reads a structure of ast nodes, and returns an object representing sourcecode.
+
+"""
+
 from ist.util import get_name
 
 def flatten(l):
@@ -11,7 +16,8 @@ def flatten(l):
 
 
 class Python(object):
-    ''' each line is kept as a string in a list '''
+    Writes python code, given an ist structure.
+    
     indentation = "    "
 
     def __repr__(self):
@@ -101,7 +107,7 @@ class Python(object):
     def write_Call(self, node):
 #('func', 'args', 'keywords', 'starargs', 'kwargs')
         args  = self.write_lines(node.args)
-        args += ["{} = {}".format(self.write(kw.arg), self.write(kw.value)) for kw in node.keywords]
+        args += ["{}={}".format(self.write(kw.arg), self.write(kw.value)) for kw in node.keywords]
         if node.starargs:
             args.append("*" + self.write(node.starargs))
         if node.kwargs:
@@ -113,7 +119,6 @@ class Python(object):
         return '' or self.write(node.value)
 
     def write_List(self, node):
-        print node
         return "[{}]".format(', '.join(map(str, self.write_lines(node.elts))))
 
     def write_Attribute(self, node):

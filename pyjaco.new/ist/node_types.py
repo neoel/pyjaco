@@ -1,3 +1,5 @@
+"""Defines all ist nodetypes available"""
+
 from collections import namedtuple
 
 Add = namedtuple('Add', ())

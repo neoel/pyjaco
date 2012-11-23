@@ -1,3 +1,10 @@
+"""
+This file will enumerate over all the ast nodetypes,
+It will create a namedtuple for each ast node, using its fields as fields.
+The results will be written in `destination_file`
+"""
+
+
 import ast, inspect
 from collections import namedtuple
 

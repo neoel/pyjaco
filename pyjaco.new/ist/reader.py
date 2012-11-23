@@ -8,6 +8,9 @@ from ist import node_types as nt
 from ist.util import get_name
 
 class Reader(ast.NodeVisitor):
+    """
+        Reads ast and constructs an ist structure (very similar to the ast)
+    """
     def visit(self, node):
         
         name = get_name(node)
