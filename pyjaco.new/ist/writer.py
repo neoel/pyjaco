@@ -16,7 +16,7 @@ def flatten(l):
 
 
 class Python(object):
-    Writes python code, given an ist structure.
+    """Writes python code, given an ist structure."""
     
     indentation = "    "
 
