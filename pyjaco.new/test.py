@@ -1,10 +1,11 @@
 
 def foo(a, *foos, **bars):
-    return a
+    return a not in foos
 
 @foo
 def test(a, b, bla=3, **foobars):
     foo(a, b, test=bla, *[1, 2, 3], **foobars)
+    a + b - bla / a
     return False | True
 
 
