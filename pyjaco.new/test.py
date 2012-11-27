@@ -12,7 +12,7 @@ class FooBar(object):
 
 
 def foo(a, *foos, **bars):
-    return a
+    yield a
 
 @foo
 def test(a, b, bla=3, **foobars):
@@ -66,4 +66,22 @@ while False:
     pass
 else:
     print "YEAH"
-    print "YEAH"
+    print {'a':3, "b":5, 4:'d', 'set':{1, 2, 3, 4}}
+
+try:
+    exec 'print \'Hello world!\'' in {}, {}
+
+    f = lambda x, y: x ** y
+except AssertionError as e:
+    print 2 in foo(2), 3//2, [1, 2, 3][2]
+    print `2` is '2', `2` is not '2', 2 << 2, 2 >> 2
+except ValueError:
+    print 2 in foo(2), 3//2, [1, 2, 3][2]
+    print `2` is '2', `2` is not '2', 2 << 2, 2 >> 2
+except:
+    print 2 in foo(2), 3//2, [1, 2, 3][2]
+    print `2` is '2', `2` is not '2', 2 << 2, 2 >> 2
+else:
+    print "nonono"
+finally:
+    print f(2, 3), hex(~0x55)

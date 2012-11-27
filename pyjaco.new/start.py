@@ -18,8 +18,11 @@ print "\n#### Original code: ####"
 print source
 print "\n#### Transformed code: ####"
 
-output.write(repr(PythonWriter(ist)))
+code = repr(PythonWriter(ist))
+
+output.write(code)
 output.close()
 
+print code
 
 
