@@ -4,7 +4,7 @@
 """
 
 import ast
-from ist import node_types as nt
+from ist import python_types as nt
 from ist.util import get_name
 
 class Reader(ast.NodeVisitor):
