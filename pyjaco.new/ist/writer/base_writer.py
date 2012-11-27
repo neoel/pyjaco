@@ -13,7 +13,7 @@ class BaseWriter(object):
         
         writer = getattr(self, "write_{}".format(name), None)
         if writer:
-            return writer(node)
+            return self.flatten(writer(node))
             
         print "Could not find writer for:", name
         return ""
@@ -22,17 +22,19 @@ class BaseWriter(object):
         return [self.indentation + str(line) for line in self.flatten(lines)]
 
     def write_lines(self, lines):
-        return self.flatten([self.write(line) for line in lines])
+        return self.flatten(map(self.write, lines))
 
     @staticmethod
     def flatten(l):
-        r = []  
-        for i in l:
-            if isinstance(i, list):
-                r.extend(BaseWriter.flatten(i))
-            else:
-                r.append(i)
-        return r
+        r = [] 
+        if isinstance(l, list):
+            for i in l:
+                if isinstance(i, list):
+                    r.extend(BaseWriter.flatten(i))
+                else:
+                    r.append(i)
+            return r
+        return l
 
     @staticmethod
     def get_name(node):
@@ -42,6 +44,7 @@ class BaseWriter(object):
         return node
     def write_NoneType(self, node):
         return node
+
 
 class NodeWriter(BaseWriter):
     def __getattr__(self, name):

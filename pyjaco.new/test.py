@@ -6,6 +6,10 @@
     That ist will be written out as python using the writer.Python class.
 """
 
+class FooBar(object):
+    def __init__(self):
+        pass
+
 
 def foo(a, *foos, **bars):
     return a
@@ -40,10 +44,26 @@ def test(a, b, bla=3, **foobars):
     return False | True
 print True or False or False
 
-bla += True if 2 == 4%2 else ""
+bla = "1"
+bla += "True" if 2 == 4%2 else ""
 
 print set(b for a in range(1, 10) if a % 3 if not a != 2 for b in range(1, 10) if not a % b)
 
-raise set(False)
+if not bla:
+    raise set(False)
 
+print (`bla`,         
+        {1, 2, 1, 1, 3, 2, 1}, 
+        {i / 2 for i in range(10)},
+        +2 - 5
+) 
 del bla
+
+with open('test.py') as f:
+    print "foobar"
+
+while False:
+    pass
+else:
+    print "YEAH"
+    print "YEAH"
