@@ -21,28 +21,29 @@ def test(a, b, bla=3, **foobars):
         *[1, 2, 3], 
         **foobars
     )
+    for foobars in foobars[1:   ]:
+        if foobar:
+            continue
+        else:
+            if not foobar:
+                pass
+            elif foobar:    
+                print "Bbla"
+                break
+            print "yeah"
+    else:
+        if a:
+            print "bla"
+        else:
+            print "Here"
+
     return False | True
+print True or False or False
 
+bla += True if 2 == 4%2 else ""
 
-import ast, inspect
-from ist.reader import Reader
-from ist.writer import Python
+print set(b for a in range(1, 10) if a % 3 if not a != 2 for b in range(1, 10) if not a % b)
 
-#source = inspect.getsource(test)
-source = open(__file__).read()
-source_ast = ast.parse(source)
+raise set(False)
 
-reader = Reader()
-
-ist = reader.visit(source_ast)
-
-print ist
-
-print "\n#### Original code: ####"
-print source
-print "\n#### Transformed code: ####"
-
-print Python(ist)
-
-
-
+del bla
