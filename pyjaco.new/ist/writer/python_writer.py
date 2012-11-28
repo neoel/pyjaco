@@ -2,8 +2,7 @@ from ist.writer.base_writer import BaseWriter, NodeWriter
 
 
 class PythonWriter(BaseWriter):
-    ''' each line is kept as a string in a list '''
-  
+    '''each line is kept as a string in a list'''
 
     def write_Add(self, node):
         """namedtuple('Add', ())"""
@@ -62,7 +61,7 @@ class PythonWriter(BaseWriter):
 
     def write_BoolOp(self, node):
         """namedtuple('BoolOp', ('op', 'values'))"""
-        return " {} " .format(self.write(node.op)).join(self.write_lines(node.values))
+        return " {} " .format(node.op).join(self.write_lines(node.values))
 
     def write_Break(self, node):
         """namedtuple('Break', ())"""

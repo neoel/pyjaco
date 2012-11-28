@@ -17,4 +17,5 @@ t.b = 4
 t.c = t.a + t.b
 
 
-print t.a, t.b, t.c
+
+print 'ask\'djf"laskdfj'

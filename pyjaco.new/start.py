@@ -6,7 +6,8 @@ from ist.writer import PythonWriter, NodeWriter
 from ist.transform import BaseTransformer
 
 with open("output.py", "w") as output:
-	source = open("base_test.py").read()
+    # source = open("base_test.py").read()
+    source = open("test.py").read()
 
 	reader = Reader()
 	reader.read('__main__', source)

@@ -54,72 +54,72 @@ class BaseTransformer(object):
         return node
 
 
-    # def trans_Print(self, node):
-    #     """Print becomes a functioncall to __builtins__.PY$print"""
-    #     return pt.Call(
-    #         func = pt.Name(
-    #             id  = "print",
-    #             ctx = pt.Load()
-    #         ),
-    #         args = node.values,
-    #         keywords = [],
-    #         starargs = None,
-    #         kwargs = None
-    #     )
+    def trans_Print(self, node):
+        """Print becomes a functioncall to __builtins__.PY$print"""
+        return pt.Call(
+            func = pt.Name(
+                id  = "print",
+                ctx = pt.Load()
+            ),
+            args = node.values,
+            keywords = [],
+            starargs = None,
+            kwargs = None
+        )
 
     # def trans_Call(self, node):
     #     self.print_node(node)
     #     return node
 
-    def trans_Name(self, node):
-        self.print_node(node)
+    # def trans_Name(self, node):
+    #     self.print_node(node)
 
-        return pt.Attribute(
-            value = pt.Name(
-                id = 'mod',
-                ctx = pt.Load()
-            ),
-            ctx = node.ctx,
-            attr = node.id
-        )
+    #     return pt.Attribute(
+    #         value = pt.Name(
+    #             id = 'mod',
+    #             ctx = pt.Load()
+    #         ),
+    #         ctx = node.ctx,
+    #         attr = node.id
+    #     )
 
-    def trans_Assign(self, node):
-        target = node.targets[0]
+    # def trans_Assign(self, node):
+    #     target = node.targets[0]
 
-        if isinstance(target, pt.Attribute) and isinstance(target.ctx, pt.Store):
-            return pt.Attribute(
-                value = target.value,
-                ctx   = pt.Load(),
-                attr  = pt.Call(
-                    func = pt.Name(
-                        id = "__setattr__",
-                        ctx = pt.Load()
-                    ),
-                    args = [
-                        pt.Str(s=target.attr),
-                        node.value
-                    ],
-                    keywords = [],
-                    starargs = None,
-                    kwargs   = None
-                )
-            )
-        return node
+    #     if isinstance(target, pt.Attribute) and isinstance(target.ctx, pt.Store):
+    #         return pt.Attribute(
+    #             value = target.value,
+    #             ctx   = pt.Load(),
+    #             attr  = pt.Call(
+    #                 func = pt.Name(
+    #                     id = "__setattr__",
+    #                     ctx = pt.Load()
+    #                 ),
+    #                 args = [
+    #                     pt.Str(s=target.attr),
+    #                     node.value
+    #                 ],
+    #                 keywords = [],
+    #                 starargs = None,
+    #                 kwargs   = None
+    #             )
+    #         )
+    #     return node
 
-    def trans_Attribute(self, node):
-        if isinstance(node.ctx, pt.Load):
-            return pt.Attribute(
-                value = node.value,
-                ctx   = pt.Load(),
-                attr  = pt.Call(
-                    func = pt.Name(
-                        id = "__getattribute__",
-                        ctx = pt.Load()
-                    ),
-                    args = [pt.Str(s=node.attr)],
-                    keywords = [],
-                    starargs = None,
-                    kwargs   = None
-                )
-            )
-        return node
+    # def trans_Attribute(self, node):
+    #     if isinstance(node.ctx, pt.Load):
+    #         return pt.Attribute(
+    #             value = node.value,
+    #             ctx   = pt.Load(),
+    #             attr  = pt.Call(
+    #                 func = pt.Name(
+    #                     id = "__getattribute__",
+    #                     ctx = pt.Load()
+    #                 ),
+    #                 args = [pt.Str(s=node.attr)],
+    #                 keywords = [],
+    #                 starargs = None,
+    #                 kwargs   = None
+    #             )
+    #         )
+    #     return node
