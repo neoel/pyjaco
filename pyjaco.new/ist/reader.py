@@ -11,6 +11,14 @@ class Reader(ast.NodeVisitor):
     """
         Reads ast and constructs an ist structure (very similar to the ast)
     """
+    def __init__(self):
+        self.collection = {}
+
+    def read(self, name, source):
+        """Read the sourcecode and store that as ist."""
+        source_ast = ast.parse(source)
+        self.collection[name] = self.visit(source_ast)
+
     def visit(self, node):
         
         name = get_name(node)

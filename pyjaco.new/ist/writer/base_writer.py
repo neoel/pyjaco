@@ -5,8 +5,17 @@ class BaseWriter(object):
     def __repr__(self):
         return '\n'.join(self.lines)
 
-    def __init__(self, node):
-        self.lines = self.flatten(self.write(node))
+    def __init__(self, collection):
+        self.collection = collection
+
+    def get(self, name):
+        """Gets the ist of `name` and returns that as a string"""
+        ist = self.collection.get(name)
+
+        if ist:
+            return '\n'.join(self.flatten(self.write(ist)))
+        else:
+            raise AttributeError("Could not find {}".format(name))
     
     def write(self, node):
         name = self.get_name(node) 
@@ -15,8 +24,6 @@ class BaseWriter(object):
         if writer:
             return self.flatten(writer(node))
             
-        print "Could not find writer for:", name
-        return ""
 
     def indent(self, lines):
         return [self.indentation + str(line) for line in self.flatten(lines)]
