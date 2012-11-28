@@ -23,7 +23,6 @@ class BaseWriter(object):
         writer = getattr(self, "write_{}".format(name), None)
         if writer:
             return self.flatten(writer(node))
-            
 
     def indent(self, lines):
         return [self.indentation + str(line) for line in self.flatten(lines)]
