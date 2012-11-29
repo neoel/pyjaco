@@ -4,13 +4,41 @@
 """
 
 import ast
-from ist import python_types as nt
-from ist.util import get_name
+from ist import ist_types as it
 
 class Reader(ast.NodeVisitor):
     """
         Reads ast and constructs an ist structure (very similar to the ast)
     """
+    operator_map = dict(
+        # 
+        Add      = "+",
+        Sub      = "-",
+        Mult     = "*",
+        Div      = "/",
+        Mod      = "%",
+        Pow      = "**",
+
+        # binary
+        LShift   = "<<",
+        RShift   = ">>",
+        BitOr    = "|",
+        BitXor   = "^",
+        BitAnd   = "&",
+        FloorDiv = "//",
+
+        # unary
+        Invert   = "~",
+        Not      = "!",
+        UAdd     = "+",
+        USub     = "-",
+
+        # boolean
+        And      = "&&",
+        Or       = "||"
+    )
+    get_operator = lambda self, op : self.operator_map[self.get_name(op)]
+
     def __init__(self):
         self.collection = {}
 
@@ -19,22 +47,59 @@ class Reader(ast.NodeVisitor):
         source_ast = ast.parse(source)
         self.collection[name] = self.visit(source_ast)
 
+    def get_name(self, node):
+        return node.__class__.__name__
+
     def visit(self, node):
+        name = self.get_name(node)
         
-        name = get_name(node)
-        fields = {}
+        if isinstance(node, ast.AST) and hasattr(it, name):
+            node_type  = getattr(it, name)
+            node_attrs = {}
 
-        for field in node._fields:
-            value = getattr(node, field)
-            if isinstance(value, list):
-                fields[field] = self.visit_list(value)
+            for fieldname in node._fields:
+                field = getattr(node, fieldname)
+                if isinstance(field, list):
+                    node_attrs[fieldname] = map(self.visit, field)
+                else:
+                    node_attrs[fieldname] = self.visit(field)
 
-            elif isinstance(value, ast.AST):
-                fields[field] = self.visit(value)
-            else:
-                fields[field] = value
+            # create the new node using the attrs.
+            node = node_type(**node_attrs) 
+            visitor = getattr(self, 'visit_{}'.format(name), None)
+            if visitor:
+                #changing the node
+                node = visitor(node)
 
-        return getattr(nt, name)(**fields)
+        return node
 
-    def visit_list(self, list):
-        return [self.visit(node) for node in list]
+    def visit_AugAssign(self, node):
+        """Fixing the operators"""
+        return it.AugAssign(
+            target = node.target,
+            op     = it.operator(type = self.get_operator(node.op)),
+            value  = node.value
+        )
+
+    def visit_BinOp(self, node):
+        """Fixing the operators"""
+        return it.BinOp(
+            left = node.left,
+            op     = it.operator(type = self.get_operator(node.op)),
+            right  = node.right
+        )
+
+    def visit_UnaryOp(self, node):
+        """Fixing the operators"""
+        return it.UnaryOp(
+            op     = it.operator(type = self.get_operator(node.op)),
+            operand  = node.operand
+        )
+
+
+    def visit_BoolOp(self, node):
+        """Fixing the operators"""
+        return it.BoolOp(
+            op     = it.operator(type = self.get_operator(node.op)),
+            values  = node.values
+        )

@@ -61,7 +61,9 @@ class PythonWriter(BaseWriter):
 
     def write_BoolOp(self, node):
         """namedtuple('BoolOp', ('op', 'values'))"""
-        return " {} " .format(node.op).join(self.write_lines(node.values))
+        return " {} " .format(
+            "and" if self.write(node.op) == "&&" else "or"
+        ).join(self.write_lines(node.values))
 
     def write_Break(self, node):
         """namedtuple('Break', ())"""
@@ -548,7 +550,7 @@ class PythonWriter(BaseWriter):
 
     def write_operator(self, node):
         """namedtuple('operator', ())"""
-        raise NotImplementedError
+        return node.type
 
     def write_slice(self, node):
         """namedtuple('slice', ())"""

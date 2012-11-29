@@ -6,7 +6,7 @@
 """
 
 
-import ist.python_types as pt
+import ist.ist_types as it
 
 from ist.writer import NodeWriter
 
@@ -27,15 +27,12 @@ class BaseTransformer(object):
             ist : self.trans(self.collection[ist]) 
                 for ist in self.collection
         }
-        
-
 
     def trans(self, node):
         name = self.get_name(node)
-        print name
 
         if hasattr(node, '_fields'):
-            node_type  = getattr(pt, name)
+            node_type  = getattr(it, name)
             node_attrs = {}
 
             for fieldname in node._fields:
@@ -56,10 +53,10 @@ class BaseTransformer(object):
 
     def trans_Print(self, node):
         """Print becomes a functioncall to __builtins__.PY$print"""
-        return pt.Call(
-            func = pt.Name(
+        return it.Call(
+            func = it.Name(
                 id  = "print",
-                ctx = pt.Load()
+                ctx = it.Load()
             ),
             args = node.values,
             keywords = [],
@@ -74,10 +71,10 @@ class BaseTransformer(object):
     # def trans_Name(self, node):
     #     self.print_node(node)
 
-    #     return pt.Attribute(
-    #         value = pt.Name(
+    #     return it.Attribute(
+    #         value = it.Name(
     #             id = 'mod',
-    #             ctx = pt.Load()
+    #             ctx = it.Load()
     #         ),
     #         ctx = node.ctx,
     #         attr = node.id
@@ -86,17 +83,17 @@ class BaseTransformer(object):
     # def trans_Assign(self, node):
     #     target = node.targets[0]
 
-    #     if isinstance(target, pt.Attribute) and isinstance(target.ctx, pt.Store):
-    #         return pt.Attribute(
+    #     if isinstance(target, it.Attribute) and isinstance(target.ctx, it.Store):
+    #         return it.Attribute(
     #             value = target.value,
-    #             ctx   = pt.Load(),
-    #             attr  = pt.Call(
-    #                 func = pt.Name(
+    #             ctx   = it.Load(),
+    #             attr  = it.Call(
+    #                 func = it.Name(
     #                     id = "__setattr__",
-    #                     ctx = pt.Load()
+    #                     ctx = it.Load()
     #                 ),
     #                 args = [
-    #                     pt.Str(s=target.attr),
+    #                     it.Str(s=target.attr),
     #                     node.value
     #                 ],
     #                 keywords = [],
@@ -107,16 +104,16 @@ class BaseTransformer(object):
     #     return node
 
     # def trans_Attribute(self, node):
-    #     if isinstance(node.ctx, pt.Load):
-    #         return pt.Attribute(
+    #     if isinstance(node.ctx, it.Load):
+    #         return it.Attribute(
     #             value = node.value,
-    #             ctx   = pt.Load(),
-    #             attr  = pt.Call(
-    #                 func = pt.Name(
+    #             ctx   = it.Load(),
+    #             attr  = it.Call(
+    #                 func = it.Name(
     #                     id = "__getattribute__",
-    #                     ctx = pt.Load()
+    #                     ctx = it.Load()
     #                 ),
-    #                 args = [pt.Str(s=node.attr)],
+    #                 args = [it.Str(s=node.attr)],
     #                 keywords = [],
     #                 starargs = None,
     #                 kwargs   = None
