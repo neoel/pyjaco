@@ -29,13 +29,25 @@ class Reader(ast.NodeVisitor):
 
         # unary
         Invert   = "~",
-        Not      = "!",
+        Not      = "not",
         UAdd     = "+",
         USub     = "-",
 
         # boolean
         And      = "&&",
-        Or       = "||"
+        Or       = "||",
+
+        # compare
+        Eq       = "==",
+        NotEq    = "!=",
+        Lt       = "<",
+        LtE      = "<=",
+        Gt       = ">",
+        GtE      = ">=",
+        Is       = "is",
+        IsNot    = "is not",
+        In       = "in",
+        NotIn    = "not in"
     )
     get_operator = lambda self, op : self.operator_map[self.get_name(op)]
 
@@ -70,6 +82,8 @@ class Reader(ast.NodeVisitor):
             if visitor:
                 #changing the node
                 node = visitor(node)
+        elif not hasattr(it, name):
+            print "not tranforming name", name
 
         return node
 
@@ -96,10 +110,17 @@ class Reader(ast.NodeVisitor):
             operand  = node.operand
         )
 
-
     def visit_BoolOp(self, node):
         """Fixing the operators"""
         return it.BoolOp(
             op     = it.operator(type = self.get_operator(node.op)),
             values  = node.values
+        )
+
+    def visit_Compare(self, node):
+        """Fixing the operators"""
+        return it.Compare(
+            left        = node.left,
+            ops         = map(lambda op: it.operator(type = self.get_operator(op)), node.ops),
+            comparators = node.comparators
         )
