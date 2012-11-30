@@ -1,4 +1,5 @@
 
+
 class BaseWriter(object):
     indentation = "    "
 
@@ -18,11 +19,13 @@ class BaseWriter(object):
             raise AttributeError("Could not find {}".format(name))
     
     def write(self, node):
-        name = self.get_name(node) 
+        name = self.get_name(node)
         
         writer = getattr(self, "write_{}".format(name), None)
         if writer:
             return self.flatten(writer(node))
+        else:
+            raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
 
     def indent(self, lines):
         return [self.indentation + str(line) for line in self.flatten(lines)]
@@ -32,7 +35,7 @@ class BaseWriter(object):
 
     @staticmethod
     def flatten(l):
-        r = [] 
+        r = []
         if isinstance(l, list):
             for i in l:
                 if isinstance(i, list):
@@ -48,6 +51,7 @@ class BaseWriter(object):
 
     def write_str(self, node):
         return node
+
     def write_NoneType(self, node):
         return node
 
@@ -62,7 +66,7 @@ class NodeWriter(BaseWriter):
                     field = getattr(node, fieldname)
 
                     if isinstance(field, list):
-                        l = self.flatten(['[',self.indent(self.write_lines(field)), ']'])
+                        l = self.flatten(['[', self.indent(self.write_lines(field)), ']'])
                     else:
                         l = self.write(field)
                         if not isinstance(l, list):
@@ -82,5 +86,3 @@ class NodeWriter(BaseWriter):
                 ])
             return [repr(node)]
         return write_node
-
-

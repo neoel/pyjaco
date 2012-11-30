@@ -10,9 +10,11 @@ import ist.ist_types as it
 
 from ist.writer import NodeWriter
 
+
 class BaseTransformer(object):
 
     nw = NodeWriter({})
+
     def print_node(self, node):
         print '\n'.join(self.nw.write(node))
 
@@ -24,7 +26,7 @@ class BaseTransformer(object):
 
     def transform(self):
         return {
-            ist : self.trans(self.collection[ist]) 
+            ist: self.trans(self.collection[ist])
                 for ist in self.collection
         }
 
@@ -44,10 +46,9 @@ class BaseTransformer(object):
                     node_attrs[fieldname] = self.trans(field)
 
             # create the new node using the attrs.
-            node = node_type(**node_attrs) 
+            node = node_type(**node_attrs)
             transformer = getattr(self, 'trans_{}'.format(name), None)
             if transformer:
                 #changing the node
                 node = transformer(node)
         return node
-

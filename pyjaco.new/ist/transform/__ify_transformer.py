@@ -1,8 +1,8 @@
 from ist.transform import BaseTransformer
 import ist.ist_types as it
 
-class __ifyTransformer(BaseTransformer):
 
+class __ifyTransformer(BaseTransformer):
 
     # def trans_Print(self, node):
     #     """Print becomes a functioncall to __builtins__.PY$print"""
@@ -33,6 +33,18 @@ class __ifyTransformer(BaseTransformer):
     #         attr = node.id
     #     )
 
+    def trans_Str(self, node):
+        return it.Call(
+            func = it.Name(
+                id = "str",
+                ctx = it.Load()
+            ),
+            args = [node],
+            keywords = [],
+            starargs = None,
+            kwargs   = None
+        )
+
     def trans_Num(self, node):
         return it.Call(
             func = it.Name(
@@ -47,21 +59,21 @@ class __ifyTransformer(BaseTransformer):
 
     # op methods
     bin_op_map = {
-        '+' : "__add__",
-        '-' : "__sub__",
-        '*' : "__mul__",
-        '/' : "__div__",
-        '%' : "__mod__",
-        '**' : "__pow__",
-        '<<' : "__lshift__",
-        '>>' : "__rshift__",
-        '|' : "__or__",
-        '^' : "__xor__",
-        '&' : "__and__",
-        '//' : "__floordiv__"
+        '+': "__add__",
+        '-': "__sub__",
+        '*': "__mul__",
+        '/': "__div__",
+        '%': "__mod__",
+        '**': "__pow__",
+        '<<': "__lshift__",
+        '>>': "__rshift__",
+        '|': "__or__",
+        '^': "__xor__",
+        '&': "__and__",
+        '//': "__floordiv__"
     }
+
     def trans_BinOp(self, node):
-        self.print_node(node.left)
         return it.Attribute(
             value = node.left,
             ctx   = it.Load(),
@@ -76,7 +88,6 @@ class __ifyTransformer(BaseTransformer):
                 kwargs   = None
             )
         )
-        
 
     def trans_Assign(self, node):
         target = node.targets[0]

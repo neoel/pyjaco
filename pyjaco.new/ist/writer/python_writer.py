@@ -1,4 +1,4 @@
-from ist.writer.base_writer import BaseWriter, NodeWriter
+from ist.writer.base_writer import BaseWriter
 
 
 class PythonWriter(BaseWriter):
@@ -14,7 +14,7 @@ class PythonWriter(BaseWriter):
 
     def write_Assert(self, node):
         """namedtuple('Assert', ('test', 'msg'))"""
-        return "assert {}".format(self.write(test))
+        return "assert {}".format(self.write(node.test))
 
     def write_Assign(self, node):
         """namedtuple('Assign', ('targets', 'value'))"""
@@ -33,11 +33,11 @@ class PythonWriter(BaseWriter):
 
     def write_AugLoad(self, node):
         """namedtuple('AugLoad', ())"""
-        pass # context expression nodes
+        pass  # context expression nodes
 
     def write_AugStore(self, node):
         """namedtuple('AugStore', ())"""
-        pass # context expression nodes
+        pass  # context expression nodes
 
     def write_BinOp(self, node):
         """namedtuple('BinOp', ('left', 'op', 'right'))"""
@@ -85,7 +85,7 @@ class PythonWriter(BaseWriter):
         return [
             ["@{}".format(self.write(decorator)) for decorator in node.decorator_list],
             "class {name}({bases}):".format(
-                name=node.name, 
+                name=node.name,
                 bases=', '.join(self.flatten(self.write_lines(node.bases)))
             ),
             self.indent(self.write_lines(node.body))
@@ -108,7 +108,7 @@ class PythonWriter(BaseWriter):
 
     def write_Del(self, node):
         """namedtuple('Del', ())"""
-        pass # context expression nodes
+        pass  # context expression nodes
 
     def write_Delete(self, node):
         """namedtuple('Delete', ('targets',))"""
@@ -128,8 +128,8 @@ class PythonWriter(BaseWriter):
     def write_DictComp(self, node):
         """namedtuple('DictComp', ('key', 'value', 'generators'))"""
         return "{{{}:{} {}}}".format(
-            self.write(node.key), 
-            self.write(node.value), 
+            self.write(node.key),
+            self.write(node.value),
             ' '.join(self.write_lines(node.generators))
         )
 
@@ -202,7 +202,7 @@ class PythonWriter(BaseWriter):
     def write_GeneratorExp(self, node):
         """namedtuple('GeneratorExp', ('elt', 'generators'))"""
         return "({} {})".format(
-            self.write(node.elt), 
+            self.write(node.elt),
             ' '.join(self.write_lines(node.generators))
         )
 
@@ -292,13 +292,13 @@ class PythonWriter(BaseWriter):
     def write_ListComp(self, node):
         """namedtuple('ListComp', ('elt', 'generators'))"""
         return "[{} {}]".format(
-            self.write(node.elt), 
+            self.write(node.elt),
             ' '.join(self.write_lines(node.generators))
         )
 
     def write_Load(self, node):
         """namedtuple('Load', ())"""
-        pass # expression context
+        pass  # expression context
 
     # def write_Lt(self, node):
     #     """namedtuple('Lt', ())"""
@@ -346,7 +346,7 @@ class PythonWriter(BaseWriter):
 
     def write_Param(self, node):
         """namedtuple('Param', ())"""
-        pass # expression context node
+        pass  # expression context node
 
     def write_Pass(self, node):
         """namedtuple('Pass', ())"""
@@ -390,21 +390,21 @@ class PythonWriter(BaseWriter):
         return "{{{} {}}}".format(self.write(node.elt), ' '.join(map(self.write, node.generators)))
 
     def write_Slice(self, node):
-        """namedtuple('Slice', ('lower', 'upper', 'step'))"""  
+        """namedtuple('Slice', ('lower', 'upper', 'step'))"""
         slice_el = lambda n: n if n != "None" and n else ""
         return ":".join(
                 map(
-                    slice_el, 
+                    slice_el,
                     map(
-                        self.write, 
+                        self.write,
                         [node.lower, node.upper, node.step]
                     )
                 )
-        )   
+        )
 
     def write_Store(self, node):
         """namedtuple('Store', ())"""
-        pass # expression context
+        pass  # expression context
 
     def write_Str(self, node):
         """namedtuple('Str', ('s',))"""
@@ -437,7 +437,7 @@ class PythonWriter(BaseWriter):
     def write_TryFinally(self, node):
         """namedtuple('TryFinally', ('body', 'finalbody'))"""
         return [
-            self.write(node.body[0]) 
+            self.write(node.body[0])
                 if len(node.body) == 1 and self.get_name(node.body[0]) == "TryExcept" else
             ["try:", self.indent(self.write_lines(node.body))],
             "finally:",

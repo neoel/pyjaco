@@ -6,12 +6,13 @@
 import ast
 from ist import ist_types as it
 
+
 class Reader(ast.NodeVisitor):
     """
         Reads ast and constructs an ist structure (very similar to the ast)
     """
     operator_map = dict(
-        # 
+        #
         Add      = "+",
         Sub      = "-",
         Mult     = "*",
@@ -49,7 +50,7 @@ class Reader(ast.NodeVisitor):
         In       = "in",
         NotIn    = "not in"
     )
-    get_operator = lambda self, op : self.operator_map[self.get_name(op)]
+    get_operator = lambda self, op: self.operator_map[self.get_name(op)]
 
     def __init__(self):
         self.collection = {}
@@ -77,13 +78,13 @@ class Reader(ast.NodeVisitor):
                     node_attrs[fieldname] = self.visit(field)
 
             # create the new node using the attrs.
-            node = node_type(**node_attrs) 
+            node = node_type(**node_attrs)
             visitor = getattr(self, 'visit_{}'.format(name), None)
             if visitor:
                 #changing the node
                 node = visitor(node)
-        elif not hasattr(it, name):
-            print "not tranforming name", name
+        # elif not hasattr(it, name):
+            # print "not tranforming name", name
 
         return node
 
