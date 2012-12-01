@@ -67,6 +67,7 @@ class Reader(ast.NodeVisitor):
         name = self.get_name(node)
         
         if isinstance(node, ast.AST) and hasattr(it, name):
+
             node_type  = getattr(it, name)
             node_attrs = {}
 
@@ -77,12 +78,21 @@ class Reader(ast.NodeVisitor):
                 else:
                     node_attrs[fieldname] = self.visit(field)
 
+            stats = None
+            if hasattr(node, 'lineno'):
+                stats = node.lineno
+
             # create the new node using the attrs.
             node = node_type(**node_attrs)
+
+
+
             visitor = getattr(self, 'visit_{}'.format(name), None)
             if visitor:
                 #changing the node
                 node = visitor(node)
+                
+            node.stats = stats
         # elif not hasattr(it, name):
             # print "not tranforming name", name
 

@@ -38,6 +38,8 @@ class BaseTransformer(object):
             node_type  = getattr(it, name)
             node_attrs = {}
 
+            stats = node.stats
+
             for fieldname in node._fields:
                 field = getattr(node, fieldname)
                 if isinstance(field, list):
@@ -51,4 +53,6 @@ class BaseTransformer(object):
             if transformer:
                 #changing the node
                 node = transformer(node)
+
+            node.stats = stats
         return node

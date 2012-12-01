@@ -59,7 +59,7 @@ print (`bla`,
 ) 
 del bla
 
-with open('test.py'), open("bla") as f, f2:
+with open('test.py') as f:
     print "foobar"
 
 while False:

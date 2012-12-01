@@ -1,5 +1,4 @@
-from ist.writer.base_writer import BaseWriter
-
+from ist.writer.base_writer import Code, BaseWriter, NodeWriter
 
 class PythonWriter(BaseWriter):
     '''each line is kept as a string in a list'''
@@ -14,124 +13,111 @@ class PythonWriter(BaseWriter):
 
     def write_Assert(self, node):
         """namedtuple('Assert', ('test', 'msg'))"""
-        return "assert {}".format(self.write(node.test))
+        return Code("assert {}".format(self.write(test)), node.stats)
 
     def write_Assign(self, node):
         """namedtuple('Assign', ('targets', 'value'))"""
-        return "{targets} = {value}".format(
-            targets = ', '.join(self.write_lines(node.targets)),
+        return Code("{targets} = {value}".format(
+            targets = self.join(', ', self.write(node.targets)),
             value   = self.write(node.value)
-        )
+        ), node.stats)
 
     def write_Attribute(self, node):
         """namedtuple('Attribute', ('value', 'attr', 'ctx'))"""
-        return "{}.{}".format(self.write(node.value), self.write(node.attr))
+        return Code("{}.{}".format(self.write(node.value), self.write(node.attr)), node.stats)
 
     def write_AugAssign(self, node):
         """namedtuple('AugAssign', ('target', 'op', 'value'))"""
-        return "{} {}= {}".format(self.write(node.target), self.write(node.op), self.write(node.value))
+        return Code("{} {}= {}".format(self.write(node.target), self.write(node.op), self.write(node.value)), node.stats)
 
     def write_AugLoad(self, node):
         """namedtuple('AugLoad', ())"""
-        pass  # context expression nodes
+        pass # context expression nodes
 
     def write_AugStore(self, node):
-        """namedtuple('AugStore', ())"""
-        pass  # context expression nodes
+        """namedtuple('AugStore',( ))"""
+        pass # context expression nodes
 
     def write_BinOp(self, node):
         """namedtuple('BinOp', ('left', 'op', 'right'))"""
-        return "{left} {op} {right}".format(
+        return Code("{left} {op} {right}".format(
             left  = self.write(node.left),
             op    = self.write(node.op),
             right = self.write(node.right)
-        )
-
-    # def write_BitAnd(self, node):
-    #     """namedtuple('BitAnd', ())"""
-    #     return "&"
-
-    # def write_BitOr(self, node):
-    #     """namedtuple('BitOr', ())"""
-    #     return "|"
-
-    # def write_BitXor(self, node):
-    #     """namedtuple('BitXor', ())"""
-    #     return "^"
+        ), node.stats)
 
     def write_BoolOp(self, node):
-        """namedtuple('BoolOp', ('op', 'values'))"""
-        return " {} " .format(
+        return Code(" {} " .format(
             "and" if self.write(node.op) == "&&" else "or"
-        ).join(self.write_lines(node.values))
+        ).join(self.write(node.values)), node.stats)
 
     def write_Break(self, node):
         """namedtuple('Break', ())"""
-        return "break"
+        return Code("break", node.stats)
 
     def write_Call(self, node):
         """namedtuple('Call', ('func', 'args', 'keywords', 'starargs', 'kwargs'))"""
-        args  = self.write_lines(node.args)
+        args  = self.write(node.args)
         args += ["{} = {}".format(self.write(kw.arg), self.write(kw.value)) for kw in node.keywords]
         if node.starargs:
             args.append("*" + self.write(node.starargs))
         if node.kwargs:
             args.append("**" + self.write(node.kwargs))
 
-        return "{}({})".format(self.write(node.func), ', '.join(args))
+        return Code("{}({})".format(self.write(node.func), self.join(', ', args)), node.stats)
 
     def write_ClassDef(self, node):
         """namedtuple('ClassDef', ('name', 'bases', 'body', 'decorator_list'))"""
-        return [
+        return Code([
             ["@{}".format(self.write(decorator)) for decorator in node.decorator_list],
             "class {name}({bases}):".format(
-                name=node.name,
-                bases=', '.join(self.flatten(self.write_lines(node.bases)))
+                name=node.name, 
+                bases=self.join(', ', self.flatten(self.write(node.bases)))
             ),
-            self.indent(self.write_lines(node.body))
-        ]
+            self.indent(self.write(node.body))
+        ], node.stats)
 
     def write_Compare(self, node):
         """namedtuple('Compare', ('left', 'ops', 'comparators'))"""
         # dont know what to expect here
         assert len(node.ops) == 1
         assert len(node.comparators) == 1
-        return "{} {} {}".format(
+        return Code("{} {} {}".format(
             self.write(node.left),
             self.write(node.ops[0]),
             self.write(node.comparators[0])
-        )
+        ), node.stats)
 
     def write_Continue(self, node):
         """namedtuple('Continue', ())"""
-        return ["continue"]
+        return Code(["continue"], node.stats)
 
     def write_Del(self, node):
         """namedtuple('Del', ())"""
-        pass  # context expression nodes
+        pass # context expression nodes
 
     def write_Delete(self, node):
         """namedtuple('Delete', ('targets',))"""
-        return "del {}".format(', '.join(self.write_lines(node.targets)))
+        return Code("del {}".format(self.join(', ', self.write(node.targets))), node.stats)
 
     def write_Dict(self, node):
         """namedtuple('Dict', ('keys', 'values'))"""
         assert len(node.keys) == len(node.values)
 
-        return "{{{}}}".format(
-            ', '.join([
+        return Code("{{{}}}".format(
+            self.join(', ', [
                 "{}:{}".format(self.write(key), self.write(value))
                         for key, value in zip(node.keys, node.values)
             ])
-        )
+        ), node.stats)
 
     def write_DictComp(self, node):
         """namedtuple('DictComp', ('key', 'value', 'generators'))"""
-        return "{{{}:{} {}}}".format(
-            self.write(node.key),
-            self.write(node.value),
-            ' '.join(self.write_lines(node.generators))
-        )
+        return Code("{{{}:{} {}}}".format(
+            self.write(node.key), 
+            self.write(node.value), 
+            ' '.join(self.write(node.generators))
+        ), node.stats)
 
     # def write_Div(self, node):
     #     """namedtuple('Div', ())"""
@@ -139,7 +125,7 @@ class PythonWriter(BaseWriter):
 
     def write_Ellipsis(self, node):
         """namedtuple('Ellipsis', ())"""
-        return "..."
+        return Code("...", node.stats)
 
     # def write_Eq(self, node):
     #     """namedtuple('Eq', ())"""
@@ -147,15 +133,15 @@ class PythonWriter(BaseWriter):
 
     def write_ExceptHandler(self, node):
         """namedtuple('ExceptHandler', ('type', 'name', 'body'))"""
-        return [
+        return Code([
             "except {} as {}:".format(self.write(node.type), self.write(node.name))
                 if node.type and node.name else
             "except {}:".format(self.write(node.type))
                 if node.type else
             "except:",
 
-            self.indent(self.write_lines(node.body))
-        ]
+            self.indent(self.write(node.body))
+        ], node.stats)
 
     def write_Exec(self, node):
         """namedtuple('Exec', ('body', 'globals', 'locals'))"""
@@ -164,11 +150,11 @@ class PythonWriter(BaseWriter):
             r += " in {}".format(self.write(node.globals))
         if node.locals:
             r += " , {}".format(self.write(node.locals))
-        return r
+        return Code(r, node.stats)
 
     def write_Expr(self, node):
         """namedtuple('Expr', ('value',))"""
-        return '' or self.write(node.value)
+        return Code('' or self.write(node.value), node.stats)
 
     # def write_Expression(self, node):
     #     """namedtuple('Expression', ('body',))"""
@@ -176,7 +162,7 @@ class PythonWriter(BaseWriter):
 
     def write_ExtSlice(self, node):
         """namedtuple('ExtSlice', ('dims',))"""
-        return ', '.join(map(self.write, node.dims))
+        return Code(self.join(', ', map(self.write, node.dims)), node.stats)
 
     # def write_FloorDiv(self, node):
     #     """namedtuple('FloorDiv', ())"""
@@ -184,31 +170,31 @@ class PythonWriter(BaseWriter):
 
     def write_For(self, node):
         """namedtuple('For', ('target', 'iter', 'body', 'orelse'))"""
-        return [
+        return Code([
             "for {} in {}:".format(self.write(node.target), self.write(node.iter)),
-            self.indent(self.write_lines(node.body)),
+            self.indent(self.write(node.body)),
             "else:",
-            self.indent(self.write_lines(node.orelse))
-        ]
+            self.indent(self.write(node.orelse))
+        ], node.stats)
 
     def write_FunctionDef(self, node):
         """namedtuple('FunctionDef', ('name', 'args', 'body', 'decorator_list'))"""
-        return [
+        return Code([
             ["@{}".format(self.write(decorator)) for decorator in node.decorator_list],
             "def {name}({args}):".format(name=node.name, args=self.write(node.args)),
-            self.indent(self.write_lines(node.body))
-        ]
+            self.indent(self.write(node.body))
+        ], node.stats)
 
     def write_GeneratorExp(self, node):
         """namedtuple('GeneratorExp', ('elt', 'generators'))"""
-        return "({} {})".format(
-            self.write(node.elt),
-            ' '.join(self.write_lines(node.generators))
-        )
+        return Code("({} {})".format(
+            self.write(node.elt), 
+            ' '.join(self.write(node.generators))
+        ), node.stats)
 
     def write_Global(self, node):
         """namedtuple('Global', ('names',))"""
-        return "global {}".format(', '.join(self.write_lines(node.names)))
+        return Code("global {}".format(self.join(', ', self.write(node.names))), node.stats)
 
     # def write_Gt(self, node):
     #     """namedtuple('Gt', ())"""
@@ -223,10 +209,10 @@ class PythonWriter(BaseWriter):
         # the if statement
         lines = self.flatten([
             "if {}:".format(self.write(node.test)),
-            self.indent(self.write_lines(node.body)),
+            self.indent(self.write(node.body)),
         ])
 
-        els = self.write_lines(node.orelse)
+        els = self.write(node.orelse)
         if len(node.orelse) == 1 and self.get_name(node.orelse[0]) == "If":
             els[0] = "el" + els[0]
             lines.extend(els)
@@ -235,23 +221,23 @@ class PythonWriter(BaseWriter):
             lines.extend(self.indent(els))
 
         # else if elif???
-        return lines
+        return Code(lines, node.stats)
 
     def write_IfExp(self, node):
         """namedtuple('IfExp', ('test', 'body', 'orelse'))"""
         r = "{} if {}".format(self.write(node.body), self.write(node.test))
         if node.orelse:
             r += " else {}".format(self.write(node.orelse))
-        return r
+        return Code(r, node.stats)
 
     def write_Import(self, node):
         """namedtuple('Import', ('names',))"""
-        return "import {}".format(', '.join(self.write_lines(node.names)))
+        return Code("import {}".format(self.join(', ', self.write(node.names))), node.stats)
 
     def write_ImportFrom(self, node):
         """namedtuple('ImportFrom', ('module', 'names', 'level'))"""
         assert node.level == 0
-        return "from {} import {}".format(node.module, ', '.join(self.write_lines(node.names)))
+        return Code("from {} import {}".format(node.module, self.join(', ', self.write(node.names))), node.stats)
 
     # def write_In(self, node):
     #     """namedtuple('In', ())"""
@@ -259,7 +245,7 @@ class PythonWriter(BaseWriter):
 
     def write_Index(self, node):
         """namedtuple('Index', ('value',))"""
-        return self.write(node.value)
+        return Code(self.write(node.value), node.stats)
 
     # def write_Interactive(self, node):
     #     """namedtuple('Interactive', ('body',))"""
@@ -283,22 +269,22 @@ class PythonWriter(BaseWriter):
 
     def write_Lambda(self, node):
         """namedtuple('Lambda', ('args', 'body'))"""
-        return "lambda {}: {}".format(self.write(node.args), self.write(node.body))
+        return Code("lambda {}: {}".format(self.write(node.args), self.write(node.body)), node.stats)
 
     def write_List(self, node):
         """namedtuple('List', ('elts', 'ctx'))"""
-        return "[{}]".format(', '.join(map(str, self.write_lines(node.elts))))
+        return Code("[{}]".format(self.join(', ', map(str, self.write(node.elts)))), node.stats)
 
     def write_ListComp(self, node):
         """namedtuple('ListComp', ('elt', 'generators'))"""
-        return "[{} {}]".format(
-            self.write(node.elt),
-            ' '.join(self.write_lines(node.generators))
-        )
+        return Code("[{} {}]".format(
+            self.write(node.elt), 
+            ' '.join(self.write(node.generators))
+        ), node.stats)
 
     def write_Load(self, node):
         """namedtuple('Load', ())"""
-        pass  # expression context
+        pass # expression context
 
     # def write_Lt(self, node):
     #     """namedtuple('Lt', ())"""
@@ -314,7 +300,7 @@ class PythonWriter(BaseWriter):
 
     def write_Module(self, node):
         """namedtuple('Module', ('body',))"""
-        return self.write_lines(node.body)
+        return Code(self.write(node.body), node.stats)
 
     # def write_Mult(self, node):
     #     """namedtuple('Mult', ())"""
@@ -322,7 +308,7 @@ class PythonWriter(BaseWriter):
 
     def write_Name(self, node):
         """namedtuple('Name', ('id', 'ctx'))"""
-        return node.id
+        return Code(node.id, node.stats)
 
     # def write_Not(self, node):
     #     """namedtuple('Not', ())"""
@@ -338,19 +324,19 @@ class PythonWriter(BaseWriter):
 
     def write_Num(self, node):
         """namedtuple('Num', ('n',))"""
-        return str(node.n)
+        return Code(str(node.n), node.stats)
 
     def write_Or(self, node):
         """namedtuple('Or', ())"""
-        return "or"
+        return Code("or", node.stats)
 
     def write_Param(self, node):
         """namedtuple('Param', ())"""
-        pass  # expression context node
+        pass # expression context node
 
     def write_Pass(self, node):
         """namedtuple('Pass', ())"""
-        return "pass"
+        return Code("pass", node.stats)
 
     # def write_Pow(self, node):
     #     """namedtuple('Pow', ())"""
@@ -360,55 +346,55 @@ class PythonWriter(BaseWriter):
         """namedtuple('Print', ('dest', 'values', 'nl'))"""
         assert node.dest == None
         assert node.nl
-        return "print {}".format(', '.join(self.write_lines(node.values)))
+        return Code("print {}".format(self.join(', ', self.write(node.values))), node.stats)
 
     def write_RShift(self, node):
         """namedtuple('RShift', ())"""
-        return ">>"
+        return Code(">>", node.stats)
 
     def write_Raise(self, node):
         """namedtuple('Raise', ('type', 'inst', 'tback'))"""
         assert node.inst is None
         assert node.tback is None
 
-        return "raise {}".format(self.write(node.type) if node.type else "")
+        return Code("raise {}".format(self.write(node.type) if node.type else ""), node.stats)
 
     def write_Repr(self, node):
         """namedtuple('Repr', ('value',))"""
-        return "`{}`".format(self.write(node.value))
+        return Code("`{}`".format(self.write(node.value)), node.stats)
 
     def write_Return(self, node):
         """namedtuple('Return', ('value',))"""
-        return "return {}".format(self.write(node.value))
+        return Code("return {}".format(self.write(node.value)), node.stats)
 
     def write_Set(self, node):
         """namedtuple('Set', ('elts',))"""
-        return "{{{}}}".format(', '.join(map(self.write, node.elts)))
+        return Code("{{{}}}".format(self.join(', ', map(self.write, node.elts))), node.stats)
 
     def write_SetComp(self, node):
         """namedtuple('SetComp', ('elt', 'generators'))"""
-        return "{{{} {}}}".format(self.write(node.elt), ' '.join(map(self.write, node.generators)))
+        return Code("{{{} {}}}".format(self.write(node.elt), ' '.join(map(self.write, node.generators))), node.stats)
 
     def write_Slice(self, node):
-        """namedtuple('Slice', ('lower', 'upper', 'step'))"""
+        """namedtuple('Slice', ('lower', 'upper', 'step'))"""  
         slice_el = lambda n: n if n != "None" and n else ""
-        return ":".join(
+        return Code(":".join(
                 map(
-                    slice_el,
+                    slice_el, 
                     map(
-                        self.write,
+                        self.write, 
                         [node.lower, node.upper, node.step]
                     )
                 )
-        )
+        )   , node.stats)
 
     def write_Store(self, node):
         """namedtuple('Store', ())"""
-        pass  # expression context
+        pass # expression context
 
     def write_Str(self, node):
         """namedtuple('Str', ('s',))"""
-        return repr(node.s)
+        return Code(repr(node.s), node.stats)
 
     # def write_Sub(self, node):
     #     """namedtuple('Sub', ())"""
@@ -416,7 +402,7 @@ class PythonWriter(BaseWriter):
 
     def write_Subscript(self, node):
         """namedtuple('Subscript', ('value', 'slice', 'ctx'))"""
-        return "{}[{}]".format(self.write(node.value), self.write(node.slice))
+        return Code("{}[{}]".format(self.write(node.value), self.write(node.slice)), node.stats)
 
     # def write_Suite(self, node):
     #     """namedtuple('Suite', ('body',))"""
@@ -424,29 +410,29 @@ class PythonWriter(BaseWriter):
 
     def write_TryExcept(self, node):
         """namedtuple('TryExcept', ('body', 'handlers', 'orelse'))"""
-        return [
+        return Code([
             "try:",
-            self.indent(self.write_lines(node.body)),
+            self.indent(self.write(node.body)),
             map(self.write, node.handlers),
 
-            ["else:", self.indent(self.write_lines(node.orelse))]
+            ["else:", self.indent(self.write(node.orelse))]
                 if node.orelse else
             []
-        ]
+        ], node.stats)
 
     def write_TryFinally(self, node):
         """namedtuple('TryFinally', ('body', 'finalbody'))"""
-        return [
-            self.write(node.body[0])
+        return Code([
+            self.write(node.body[0]) 
                 if len(node.body) == 1 and self.get_name(node.body[0]) == "TryExcept" else
-            ["try:", self.indent(self.write_lines(node.body))],
+            ["try:", self.indent(self.write(node.body))],
             "finally:",
-            self.indent(self.write_lines(node.finalbody))
-        ]
+            self.indent(self.write(node.finalbody))
+        ], node.stats)
 
     def write_Tuple(self, node):
         """namedtuple('Tuple', ('elts', 'ctx'))"""
-        return "({})".format(', '.join(self.write_lines(node.elts)))
+        return Code("({})".format(self.join(', ', self.write(node.elts))), node.stats)
 
     # def write_UAdd(self, node):
     #     """namedtuple('UAdd', ())"""
@@ -458,7 +444,7 @@ class PythonWriter(BaseWriter):
 
     def write_UnaryOp(self, node):
         """namedtuple('UnaryOp', ('op', 'operand'))"""
-        return "{} {}".format(self.write(node.op), self.write(node.operand))
+        return Code("{} {}".format(self.write(node.op), self.write(node.operand)), node.stats)
 
     def write_While(self, node):
         """namedtuple('While', ('test', 'body', 'orelse'))"""
@@ -471,7 +457,7 @@ class PythonWriter(BaseWriter):
                 "else:",
                 self.indent(map(self.write, node.orelse))
             ])
-        return r
+        return Code(r, node.stats)
 
     def write_With(self, node):
         """namedtuple('With', ('context_expr', 'optional_vars', 'body'))"""
@@ -479,20 +465,20 @@ class PythonWriter(BaseWriter):
 
         if node.optional_vars:
             w += " as {}".format(self.write(node.optional_vars))
-        return [
+        return Code([
             "{}:".format(w),
             self.indent(map(self.write, node.body))
-        ]
+        ], node.stats)
 
     def write_Yield(self, node):
         """namedtuple('Yield', ('value',))"""
-        return "yield {}".format(self.write(node.value))
+        return Code("yield {}".format(self.write(node.value)), node.stats)
 
     def write_alias(self, node):
         """namedtuple('alias', ('name', 'asname'))"""
         if node.asname:
-            return "{} as {}".format(node.name, node.asname)
-        return node.name
+            return Code("{} as {}".format(node.name, node.asname), node.stats)
+        return Code(node.name, node.stats)
 
     def write_arguments(self, node):
         """namedtuple('arguments', ('args', 'vararg', 'kwarg', 'defaults'))"""
@@ -511,7 +497,7 @@ class PythonWriter(BaseWriter):
         if node.kwarg:
             args.append("**" + self.write(node.kwarg))
 
-        return ', '.join(args)
+        return Code(self.join(', ', args), node.stats)
 
     # def write_boolop(self, node):
     #     """namedtuple('boolop', ())"""
@@ -526,7 +512,7 @@ class PythonWriter(BaseWriter):
         r = "for {} in {}".format(self.write(node.target), self.write(node.iter))
         for i in node.ifs:
             r += " if {}".format(self.write(i))
-        return r
+        return Code(r, node.stats)
 
     # def write_excepthandler(self, node):
     #     """namedtuple('excepthandler', ())"""
@@ -550,7 +536,7 @@ class PythonWriter(BaseWriter):
 
     def write_operator(self, node):
         """namedtuple('operator', ())"""
-        return node.type
+        return Code(node.type, node.stats)
  
     # def write_slice(self, node):
     #     """namedtuple('slice', ())"""

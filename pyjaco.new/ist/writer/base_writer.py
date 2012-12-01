@@ -1,4 +1,14 @@
 
+class Code(object):
+    def __init__(self, c, stats=None):
+        self.c = c
+        self.stats = stats
+    def __str__(self):
+        return self.c
+
+    def __repr__(self):
+        return "Code({}, stats={})".format(self.c, self.stats)
+
 
 class BaseWriter(object):
     indentation = "    "
@@ -17,44 +27,53 @@ class BaseWriter(object):
             return '\n'.join(self.flatten(self.write(ist)))
         else:
             raise AttributeError("Could not find {}".format(name))
+
+    def join(self, joiner, list):
+        return joiner.join(map(str, list))
     
     def write(self, node):
-        name = self.get_name(node)
-        
-        writer = getattr(self, "write_{}".format(name), None)
-        if writer:
-            return self.flatten(writer(node))
+
+        if hasattr(node, '_fields'):
+            name = self.get_name(node)
+            
+            writer = getattr(self, "write_{}".format(name), None)
+
+            if writer:
+                code = self.flatten(writer(node))
+                # if node.stats:
+                #     if isinstance(lines, str):
+                #         lines += "#{}".format(node.stats)
+                #     else:
+                #         lines.append("#{}".format(node.stats))
+            else:
+                raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
+        elif isinstance(node, list):
+            # write the list
+            code = self.flatten(map(self.write, node))
         else:
-            raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
+            return node
+
+        return code
 
     def indent(self, lines):
         return [self.indentation + str(line) for line in self.flatten(lines)]
 
-    def write_lines(self, lines):
-        return self.flatten(map(self.write, lines))
-
     @staticmethod
     def flatten(l):
+        print repr(l)
         r = []
         if isinstance(l, list):
             for i in l:
                 if isinstance(i, list):
                     r.extend(BaseWriter.flatten(i))
                 else:
-                    r.append(i)
+                    r.append(str(i))
             return r
         return l
 
     @staticmethod
     def get_name(node):
         return node.__class__.__name__
-
-    def write_str(self, node):
-        return node
-
-    def write_NoneType(self, node):
-        return node
-
 
 class NodeWriter(BaseWriter):
     def __getattr__(self, name):

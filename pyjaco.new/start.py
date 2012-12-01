@@ -2,9 +2,9 @@
 
 from ist.reader import Reader
 from ist.writer import PythonWriter, JavascriptWriter
-from ist.transform import __ifyTransformer
+from ist.transform import __ifyTransformer, TypifyTransformer
 
-test = "all_nodes"
+test = "getattributes"
 
 print "\n\n########## Translating tests/{}.py:".format(test)
 
@@ -16,16 +16,16 @@ with open("output.py", "w") as output:
     reader.read('__main__', source)
 
     transformed = __ifyTransformer(reader.collection).transform()
-    # transformed = typifyTransformer(transformed).transform()
+    transformed = TypifyTransformer(transformed).transform()
     # transformed = semantificationTransformer(transformed).transform()
 
     python = PythonWriter(reader.collection)
-    python2 = PythonWriter(transformed)
-    javascript = JavascriptWriter(transformed)
+    # python2 = PythonWriter(transformormed)
+    # javascript = JavascriptWriter(transformed)
     
     print "\n########## python code:"
     print python.get('__main__')
-    print "\n########## __ified python code:"
-    print python2.get('__main__')
-    print "\n########## transformed javascript code:"
-    print javascript.get('__main__')
+    # print "\n########## transformed python code:"
+    # print python2.get('__main__')
+    # print "\n########## transformed javascript code:"
+    # print javascript.get('__main__')
