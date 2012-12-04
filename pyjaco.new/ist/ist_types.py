@@ -4,13 +4,14 @@ from collections import namedtuple
 
 
 def ist_node(name, fields):
-	n_tuple = namedtuple(name, fields)
-	class IST(n_tuple):
-		stats = None
+    n_tuple = namedtuple(name, fields)
 
-	IST.__name__ = name
+    class IST(n_tuple):
+        stats = None
 
-	return IST
+    IST.__name__ = name
+
+    return IST
 
 
 # Add           = ist_node('Add',           ())

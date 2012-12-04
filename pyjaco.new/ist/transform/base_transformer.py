@@ -1,5 +1,4 @@
 
-
 """
     A transformer traverses the ist, and then modifies the nodes, requiring them to be recreated.
     This means a transformer must define every node encountered.
@@ -14,7 +13,7 @@ from ist.writer import NodeWriter
 class BaseTransformer(object):
 
     nw = NodeWriter({})
-
+    
     def print_node(self, node):
         print '\n'.join(self.nw.write(node))
 

@@ -33,30 +33,6 @@ class __ifyTransformer(BaseTransformer):
     #         attr = node.id
     #     )
 
-    def trans_Str(self, node):
-        return it.Call(
-            func = it.Name(
-                id = "str",
-                ctx = it.Load()
-            ),
-            args = [node],
-            keywords = [],
-            starargs = None,
-            kwargs   = None
-        )
-
-    def trans_Num(self, node):
-        return it.Call(
-            func = it.Name(
-                id = "int",
-                ctx = it.Load()
-            ),
-            args = [node],
-            keywords = [],
-            starargs = None,
-            kwargs   = None
-        )
-
     # op methods
     bin_op_map = {
         '+': "__add__",
@@ -88,44 +64,3 @@ class __ifyTransformer(BaseTransformer):
                 kwargs   = None
             )
         )
-
-    def trans_Assign(self, node):
-        target = node.targets[0]
-
-        if isinstance(target, it.Attribute) and isinstance(target.ctx, it.Store):
-            return it.Attribute(
-                value = target.value,
-                ctx   = it.Load(),
-                attr  = it.Call(
-                    func = it.Name(
-                        id = "__setattr__",
-                        ctx = it.Load()
-                    ),
-                    args = [
-                        it.Str(s=target.attr),
-                        node.value
-                    ],
-                    keywords = [],
-                    starargs = None,
-                    kwargs   = None
-                )
-            )
-        return node
-
-    def trans_Attribute(self, node):
-        if isinstance(node.ctx, it.Load):
-            return it.Attribute(
-                value = node.value,
-                ctx   = it.Load(),
-                attr  = it.Call(
-                    func = it.Name(
-                        id = "__getattribute__",
-                        ctx = it.Load()
-                    ),
-                    args = [it.Str(s=node.attr)],
-                    keywords = [],
-                    starargs = None,
-                    kwargs   = None
-                )
-            )
-        return node
