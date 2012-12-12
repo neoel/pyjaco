@@ -197,7 +197,7 @@ class PythonWriter(BaseWriter):
         """namedtuple('FunctionDef', ('name', 'args', 'body', 'decorator_list'))"""
         return [
             ["@{}".format(self.write(decorator)) for decorator in node.decorator_list],
-            "def {name}({args}):".format(name=node.name, args=self.write(node.args)),
+            "def {name}({args}):".format(name=self.write(node.name), args=self.write(node.args)),
             self.indent(self.write_lines(node.body))
         ]
 
