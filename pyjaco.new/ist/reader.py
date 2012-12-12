@@ -58,7 +58,7 @@ class Reader(ast.NodeVisitor):
     def read(self, name, source):
         """Read the sourcecode and store that as ist."""
         source_ast = ast.parse(source)
-        self.collection[name] = self.visit(source_ast)
+        self.collection[name] = self.visit_Module(name, source_ast)
 
     def get_name(self, node):
         return node.__class__.__name__
@@ -135,3 +135,15 @@ class Reader(ast.NodeVisitor):
             ops         = map(lambda op: it.operator(type = self.get_operator(op)), node.ops),
             comparators = node.comparators
         )
+
+
+    def visit_FunctionDef(self, node):
+        return it.FunctionDef(
+            name = it.Name(node.name, it.Store()),
+            args = node.args,
+            body = node.body,
+            decorator_list = node.decorator_list
+        )
+
+    def visit_Module(self, name, node):
+        return it.Module(name, map(self.visit, node.body))
