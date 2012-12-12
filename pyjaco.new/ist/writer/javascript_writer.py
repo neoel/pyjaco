@@ -11,13 +11,10 @@ class JavascriptWriter(BaseWriter):
     write_Return = lambda self, node: "return {}".format(self.write(node.value))
 
     def write_Module(self, node):
-        print "Module", node.stats
         return map(self.write, node.body)
 
-    def write_Print(self, node):
-        return "mod.PY$__builtins__.print({});".format(
-            ', '.join(map(self.write, node.values))
-        )
+    def write_Name(self, node):
+        return node.id
 
     def write_Call(self, node):
         assert node.keywords == []
@@ -32,28 +29,25 @@ class JavascriptWriter(BaseWriter):
 
     def write_Attribute(self, node):
         return "{}.{}".format(self.write(node.value), self.write(node.attr))
-        self.print_node(node)
-
-    def write_ClassDef(self, node):
-        # name, bases, body, decorator_list
-        return "{} = ClassDef({}, {}, {})".format(
-            node.name, node.name,
-            self.write(node.bases),
-            json.dumps([
-                self.write(attr) 
-                    for attr in node.body
-            ])
-        )
 
     def write_FunctionDef(self, node):
         # name, args, body, decorator_list
-        return ["{} = function ({}) {{".format(
-                    node.name,
-                    ', '.join(self.write(node.args))
-                ),
-                self.indent(map(self.write, node.body)),
-                "};"
-        ]
+        if node.name:
+            return self.join(["{} = function ({}) {{".format(
+                        self.write(node.name),
+                        ', '.join(self.write(node.args))
+                    ),
+                    self.indent(map(self.write, node.body)),
+                    "}"
+            ])
+        else:
+            return self.join(["function ({}) {{".format(
+                        ', '.join(self.write(node.args))
+                    ),
+                    self.indent(map(self.write, node.body)),
+                    "}"
+            ])
+
 
     def write_arguments(self, node):
         assert node.vararg   == None
@@ -62,6 +56,8 @@ class JavascriptWriter(BaseWriter):
 
         return map(self.write, node.args)
 
+    def write_Expr(self, node):
+        return '' or self.write(node.value)
 
 
     
