@@ -18,7 +18,7 @@ class BaseWriter(object):
         ist = self.collection.get(name)
 
         if ist:
-            return '\n'.join(self.flatten(self.write(ist)))
+            return self.join(self.write(ist))
         else:
             raise AttributeError("Could not find {}".format(name))
     
@@ -33,8 +33,15 @@ class BaseWriter(object):
         else:
             raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
 
+    def join(self, list):
+        return '\n'.join(self.flatten(list))
+
     def indent(self, lines):
-        return [self.indentation + str(line) for line in self.flatten(lines)]
+        lns = []
+        for line in self.flatten(lines):
+            lns += line.split('\n');
+
+        return [self.indentation + str(line) for line in lns]
 
     def write_lines(self, lines):
         return self.flatten(map(self.write, lines))
