@@ -4,6 +4,8 @@ import ist.ist_types as it
 
 
 class TypifyTransformer(BaseTransformer):
+    """typeifycation (TypifyTransformer) > explicitly make every literal a python literal. """
+
 
     def trans_Str(self, node):
         return it.Call(

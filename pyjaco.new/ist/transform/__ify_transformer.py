@@ -3,6 +3,7 @@ import ist.ist_types as it
 
 
 class __ifyTransformer(BaseTransformer):
+    """__ification (__ifyTransformer) > adding all the magic methods."""
 
     # def trans_Print(self, node):
     #     """Print becomes a functioncall to __builtins__.PY$print"""
