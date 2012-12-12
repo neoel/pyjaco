@@ -1,0 +1,15 @@
+
+Lots of things to do, although most things even pretty unclear to me as well. 
+Therefore I create this file, describing most things as clear as possible. 
+
+Todo:
+
+Transformers
+  - functions:
+        Make sure the functions are transformed correctly to pythonic functions. this means default arguments, keywords arguments, args and kwargs are supported.
+  - namespacing:
+        Make sure every variable comes from a known source. otherwise wrap that variable in a lazy pythonizer function.
+
+Writers
+  - javascript test:
+        Define all nodes allowed in a javascript writer, and fail whenever a not supported node is entered.
