@@ -51,7 +51,7 @@ print set(b for a in range(1, 10) if a % 3 if not a != 2 for b in range(1, 10) i
 
 if not bla:
     raise set(False)
-
+repr(bla)
 print (`bla`,         
         {1, 2, 1, 1, 3, 2, 1}, 
         {i / 2 for i in range(10)},
