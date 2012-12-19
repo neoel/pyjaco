@@ -86,7 +86,6 @@ class Reader(ast.NodeVisitor):
             node = node_type(**node_attrs)
 
 
-
             visitor = getattr(self, 'visit_{}'.format(name), None)
             if visitor:
                 #changing the node
@@ -139,11 +138,11 @@ class Reader(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         return it.FunctionDef(
-            name = it.Name(node.name, it.Store()),
+            name = it.Name(id=node.name, ctx=it.Store()),
             args = node.args,
             body = node.body,
             decorator_list = node.decorator_list
         )
 
     def visit_Module(self, name, node):
-        return it.Module(name, map(self.visit, node.body))
+        return it.Module(name=name, body=map(self.visit, node.body))

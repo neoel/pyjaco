@@ -20,6 +20,7 @@ class JavascriptWriter(BaseWriter):
         assert node.keywords == []
         assert node.starargs == None
         assert node.kwargs == None
+
         return "{}({})".format(self.write(node.func), ', '.join(map(self.write, node.args)))
 
     def write_Assign(self, node):
@@ -28,24 +29,29 @@ class JavascriptWriter(BaseWriter):
         return "var {} = {}".format(self.write(node.targets[0]), self.write(node.value))
 
     def write_Attribute(self, node):
+        print "Attribute: {}, {}".format(self.write(node.attr), node.ctx)
         return "{}.{}".format(self.write(node.value), self.write(node.attr))
 
     def write_FunctionDef(self, node):
         # name, args, body, decorator_list
         if node.name:
-            return self.join(["{} = function ({}) {{".format(
-                        self.write(node.name),
-                        ', '.join(self.write(node.args))
-                    ),
-                    self.indent(map(self.write, node.body)),
-                    "}"
+            return self.join([
+                        "{} = function ({}) {{".format(
+                            self.write(node.name),
+                            self.write(node.args)
+                        ),
+                        self.indent(
+                            map(self.write, node.body)
+                        ),
+                        "}"
             ])
         else:
-            return self.join(["function ({}) {{".format(
-                        ', '.join(self.write(node.args))
-                    ),
-                    self.indent(map(self.write, node.body)),
-                    "}"
+            return self.join([
+                "function ({}) {{".format(self.write(node.args)),
+                self.indent(
+                    map(self.write, node.body)
+                ),
+                "}"
             ])
 
 
@@ -54,7 +60,7 @@ class JavascriptWriter(BaseWriter):
         assert node.kwarg    == None
         assert node.defaults == []
 
-        return map(self.write, node.args)
+        return ','.join(map(self.write, node.args))
 
     def write_Expr(self, node):
         return '' or self.write(node.value)

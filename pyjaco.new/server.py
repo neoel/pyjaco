@@ -20,7 +20,7 @@ html = """
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-    	python, javascript = test('all_nodes')
+    	python, javascript = test('functions')
 
 
 

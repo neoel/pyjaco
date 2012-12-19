@@ -31,38 +31,3 @@ class TypifyTransformer(BaseTransformer):
             kwargs   = None
         )
 
-    # def trans_Call(self, node):
-    #     self.print_node(node)
-    #     return node
-# Call(
-#     func=Call(
-#         func=Attribute(
-#             value=Name(
-#                 id=b
-#                 ctx=Load()
-#             )
-#             attr=Call(
-#                 func=Name(
-#                     id=__getattribute__
-#                     ctx=Load()
-#                 )
-#                 args=[
-#                     Str(
-#                         s=a
-#                     )
-#                 ]
-#                 keywords=[]
-#                 starargs=None
-#                 kwargs=None
-#             )
-#             ctx=Load()
-#         )
-#         args=[]
-#         keywords=[]
-#         starargs=None
-#         kwargs=None
-#     )
-#     args=[]
-#     keywords=[]
-#     starargs=None
-#     kwargs=None

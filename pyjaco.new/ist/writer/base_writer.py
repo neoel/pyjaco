@@ -23,15 +23,20 @@ class BaseWriter(object):
             raise AttributeError("Could not find {}".format(name))
     
     def write(self, node):
-        name = self.get_name(node)
-        
-        writer = getattr(self, "write_{}".format(name), None)
-        if writer:
-            return self.flatten(writer(node))
-        elif isinstance(node, list):
-            return map(self.write, node)
+        if node:
+            name = self.get_name(node)
+            
+            writer = getattr(self, "write_{}".format(name), None)
+            if writer:
+                return self.flatten(writer(node))
+            elif isinstance(node, list):
+                return map(self.write, node)
+            elif not node or isinstance(node, str):
+                return node 
+            else:
+                raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
         else:
-            raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
+            return ''
 
     def join(self, list):
         return '\n'.join(self.flatten(list))
@@ -62,11 +67,6 @@ class BaseWriter(object):
     def get_name(node):
         return node.__class__.__name__
 
-    def write_str(self, node):
-        return node
-
-    def write_NoneType(self, node):
-        return node
 
 
 class NodeWriter(BaseWriter):

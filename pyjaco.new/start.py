@@ -15,10 +15,10 @@ def test(test_file):
 
     transformed = __ifyTransformer(reader.collection).transform()
     transformed = TypifyTransformer(transformed).transform()
-    # transformed = SemantifyTransformer(transformed).transform()
+    transformed = SemantifyTransformer(transformed).transform()
 
     python = PythonWriter(reader.collection)
-    javascript = PythonWriter(transformed)
+    javascript = JavascriptWriter(transformed)
 
     return python, javascript
     

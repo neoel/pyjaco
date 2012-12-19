@@ -4,14 +4,6 @@ from ist.writer.base_writer import BaseWriter
 class PythonWriter(BaseWriter):
     '''each line is kept as a string in a list'''
 
-    # def write_Add(self, node):
-    #     """namedtuple('Add', ())"""
-    #     return "+"
-
-    # def write_And(self, node):
-    #     """namedtuple('And', ())"""
-    #     return "and"
-
     def write_Assert(self, node):
         """namedtuple('Assert', ('test', 'msg'))"""
         return "assert {}".format(self.write(node.test))
@@ -48,18 +40,6 @@ class PythonWriter(BaseWriter):
             op    = self.write(node.op),
             right = self.write(node.right)
         )
-
-    # def write_BitAnd(self, node):
-    #     """namedtuple('BitAnd', ())"""
-    #     return "&"
-
-    # def write_BitOr(self, node):
-    #     """namedtuple('BitOr', ())"""
-    #     return "|"
-
-    # def write_BitXor(self, node):
-    #     """namedtuple('BitXor', ())"""
-    #     return "^"
 
     def write_BoolOp(self, node):
         """namedtuple('BoolOp', ('op', 'values'))"""
@@ -135,17 +115,9 @@ class PythonWriter(BaseWriter):
             ' '.join(self.write_lines(node.generators))
         )
 
-    # def write_Div(self, node):
-    #     """namedtuple('Div', ())"""
-    #     return "/"
-
     def write_Ellipsis(self, node):
         """namedtuple('Ellipsis', ())"""
         return "..."
-
-    # def write_Eq(self, node):
-    #     """namedtuple('Eq', ())"""
-    #     return "=="
 
     def write_ExceptHandler(self, node):
         """namedtuple('ExceptHandler', ('type', 'name', 'body'))"""
@@ -172,17 +144,9 @@ class PythonWriter(BaseWriter):
         """namedtuple('Expr', ('value',))"""
         return '' or self.write(node.value)
 
-    # def write_Expression(self, node):
-    #     """namedtuple('Expression', ('body',))"""
-    #     pass # dont think this wil ever be called (everthing seems a module)
-
     def write_ExtSlice(self, node):
         """namedtuple('ExtSlice', ('dims',))"""
         return ', '.join(map(self.write, node.dims))
-
-    # def write_FloorDiv(self, node):
-    #     """namedtuple('FloorDiv', ())"""
-    #     return "//"
 
     def write_For(self, node):
         """namedtuple('For', ('target', 'iter', 'body', 'orelse'))"""
@@ -211,14 +175,6 @@ class PythonWriter(BaseWriter):
     def write_Global(self, node):
         """namedtuple('Global', ('names',))"""
         return "global {}".format(', '.join(self.write_lines(node.names)))
-
-    # def write_Gt(self, node):
-    #     """namedtuple('Gt', ())"""
-    #     return ">"
-
-    # def write_GtE(self, node):
-    #     """namedtuple('GtE', ())"""
-    #     return ">="
 
     def write_If(self, node):
         """namedtuple('If', ('test', 'body', 'orelse'))"""
@@ -255,33 +211,9 @@ class PythonWriter(BaseWriter):
         assert node.level == 0
         return "from {} import {}".format(node.module, ', '.join(self.write_lines(node.names)))
 
-    # def write_In(self, node):
-    #     """namedtuple('In', ())"""
-    #     return "in"
-
     def write_Index(self, node):
         """namedtuple('Index', ('value',))"""
         return self.write(node.value)
-
-    # def write_Interactive(self, node):
-    #     """namedtuple('Interactive', ('body',))"""
-    #     pass # dont think this will ever be called (everything is a module)
-
-    # def write_Invert(self, node):
-    #     """namedtuple('Invert', ())"""
-    #     return "~"
-
-    # def write_Is(self, node):
-    #     """namedtuple('Is', ())"""
-    #     return "is"
-
-    # def write_IsNot(self, node):
-    #     """namedtuple('IsNot', ())"""
-    #     return "is not"
-
-    # def write_LShift(self, node):
-    #     """namedtuple('LShift', ())"""
-    #     return "<<"
 
     def write_Lambda(self, node):
         """namedtuple('Lambda', ('args', 'body'))"""
@@ -301,18 +233,6 @@ class PythonWriter(BaseWriter):
     def write_Load(self, node):
         """namedtuple('Load', ())"""
         pass  # expression context
-
-    # def write_Lt(self, node):
-    #     """namedtuple('Lt', ())"""
-    #     return "<"
-
-    # def write_LtE(self, node):
-    #     """namedtuple('LtE', ())"""
-    #     return "<="
-
-    # def write_Mod(self, node):
-    #     """namedtuple('Mod', ())"""
-    #     return "%"
 
     def write_Module(self, node):
         """namedtuple('Module', ('body',))"""
@@ -500,11 +420,10 @@ class PythonWriter(BaseWriter):
         """namedtuple('arguments', ('args', 'vararg', 'kwarg', 'defaults'))"""
         args = []
         no_defaults = len(node.args) - len(node.defaults)
-        
         for i, arg in enumerate(node.args):
             arg = self.write(arg)
             if i < (no_defaults):
-                args.append(self.write(arg))
+                args.append(arg)
             else:
                 default = self.write(node.defaults[i - no_defaults])
                 args.append("{}={}".format(arg, default))
