@@ -52,14 +52,11 @@ class __ifyTransformer(BaseTransformer):
 
     def trans_BinOp(self, node):
         return it.Attribute(
-            value = node.left,
+            value = self.trans(node.left),
             ctx   = it.Load(),
             attr  = it.Call(
-                func = it.Name(
-                    id = self.bin_op_map[node.op.type],
-                    ctx = it.Load()
-                ),
-                args = [node.right],
+                func = it.Name(self.bin_op_map[node.op.type]),
+                args = [self.trans(node.right)],
                 keywords = [],
                 starargs = None,
                 kwargs   = None
@@ -70,62 +67,40 @@ class __ifyTransformer(BaseTransformer):
         if isinstance(node.ctx, it.Load):
             if isinstance(node.attr, it.Call):
                 return it.Attribute(
-                    value = node.value,
+                    value = self.trans(node.value),
                     ctx   = it.Load(),
                     attr  = it.Call(
                         func = it.Call(
-                            func = it.Name(
-                                id = "__getattribute__",
-                                ctx = it.Load()
-                            ),
-                            args = [it.Str(s=node.attr.func.id)],
-                            keywords = [],
-                            starargs = None,
-                            kwargs   = None
+                            func = it.Name("__getattribute__"),
+                            args = [it.Str(s=node.attr.func.id)]
                         ),
-                        args = node.attr.args,
-                        keywords = [],
-                        starargs = None,
-                        kwargs   = None
+                        args = self.trans(node.attr.args)
                     )
                 )
             else:
                 return it.Attribute(
-                    value = node.value,
+                    value = self.trans(node.value),
                     ctx   = it.Load(),
                     attr  = it.Call(
-                        func = it.Name(
-                            id = "__getattribute__",
-                            ctx = it.Load()
-                        ),
-                        args = [it.Str(s=node.attr)],
-                        keywords = [],
-                        starargs = None,
-                        kwargs   = None
+                        func = it.Name("__getattribute__"),
+                        args = [it.Str(s=node.attr)]
                     )
                 )
         return node
-
 
     def trans_Assign(self, node):
         target = node.targets[0]
 
         if isinstance(target, it.Attribute) and isinstance(target.ctx, it.Store):
             return it.Attribute(
-                value = target.value,
+                value = self.trans(target.value),
                 ctx   = it.Load(),
                 attr  = it.Call(
-                    func = it.Name(
-                        id = "__setattr__",
-                        ctx = it.Load()
-                    ),
+                    func = it.Name("__setattr__"),
                     args = [
                         it.Str(s=target.attr),
-                        node.value
-                    ],
-                    keywords = [],
-                    starargs = None,
-                    kwargs   = None
+                        self.trans(node.value)
+                    ]
                 )
             )
         return node

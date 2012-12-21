@@ -6,7 +6,7 @@ from ist.transform import __ifyTransformer, TypifyTransformer, SemantifyTransfor
 
 
 def test(test_file):
-    print "\n\n########## Translating tests/{}.py:".format(test)
+    print "\n\n########## Translating tests/{}.py:".format(test_file)
     location = "tests/{}.py".format(test_file)
     source = open(location).read()
 

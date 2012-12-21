@@ -26,13 +26,13 @@ class JavascriptWriter(BaseWriter):
     def write_Assign(self, node):
         assert len(node.targets) == 1
 
-        return "var {} = {}".format(self.write(node.targets[0]), self.write(node.value))
+        return "{} = {}".format(self.write(node.targets[0]), self.write(node.value))
 
     def write_Attribute(self, node):
-        print "Attribute: {}, {}".format(self.write(node.attr), node.ctx)
         return "{}.{}".format(self.write(node.value), self.write(node.attr))
 
     def write_FunctionDef(self, node):
+        # self.print_node(node)
         # name, args, body, decorator_list
         if node.name:
             return self.join([

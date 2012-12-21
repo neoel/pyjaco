@@ -85,7 +85,6 @@ class Reader(ast.NodeVisitor):
             # create the new node using the attrs.
             node = node_type(**node_attrs)
 
-
             visitor = getattr(self, 'visit_{}'.format(name), None)
             if visitor:
                 #changing the node

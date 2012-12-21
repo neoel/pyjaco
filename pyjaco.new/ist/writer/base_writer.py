@@ -30,9 +30,11 @@ class BaseWriter(object):
             if writer:
                 return self.flatten(writer(node))
             elif isinstance(node, list):
-                return map(self.write, node)
+                return str(map(self.write, node))
             elif not node or isinstance(node, str):
-                return node 
+                return repr(node)
+            elif not node or isinstance(node, int):
+                return repr(node)
             else:
                 raise ValueError("{}: write_{} not found".format(self.get_name(self), name))
         else:

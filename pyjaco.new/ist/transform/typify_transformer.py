@@ -9,25 +9,19 @@ class TypifyTransformer(BaseTransformer):
 
     def trans_Str(self, node):
         return it.Call(
-            func = it.Name(
-                id = "str",
-                ctx = it.Load()
-            ),
-            args = [node],
-            keywords = [],
-            starargs = None,
-            kwargs   = None
+            func = it.Name("str"),
+            args = [node.s]
         )
 
     def trans_Num(self, node):
         return it.Call(
-            func = it.Name(
-                id = "int",
-                ctx = it.Load()
-            ),
-            args = [node],
-            keywords = [],
-            starargs = None,
-            kwargs   = None
+            func = it.Name("int"),
+            args = [node.n]
+        )
+
+    def trans_List(self, node):
+        return it.Call(
+            func = it.Name('list'),
+            args = [node.elts]
         )
 
