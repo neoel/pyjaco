@@ -10,8 +10,9 @@ def ist_node(nodename, fields=(), defaults=()):
         stats = None
 
         def __new__(cls, *args, **kwargs):
+                
             arguments = {
-                fields[i] : args[i] if len(args) > i else kwargs.get(fields[i]) or defaults[i]
+                fields[i] : args[i] if len(args) > i else kwargs.get(fields[i], defaults[i])
                     for i in range(len(fields))
             }
 
@@ -29,6 +30,7 @@ Assign          = ist_node('Assign', ('targets', 'value'), ([], None))
 Attribute       = ist_node('Attribute', ('ctx', 'attr', 'value'), (None, None, None))
 AugAssign       = ist_node('AugAssign', ('target', 'value', 'op'), (None, None, None))
 AugLoad         = ist_node('AugLoad',)
+
 AugStore        = ist_node('AugStore',)
 BinOp           = ist_node('BinOp', ('op', 'right', 'left'), (None, None, None))
 # BitAnd        = ist_node('BitAnd', )
@@ -54,7 +56,7 @@ Expr            = ist_node('Expr', ('value',), (None,))
 ExtSlice        = ist_node('ExtSlice', ('dims',), ([]))
 # FloorDiv      = ist_node('FloorDiv', )
 For             = ist_node('For', ('body', 'orelse', 'target', 'iter'), ([], [], None, None))
-FunctionDef     = ist_node('FunctionDef', ('body', 'decorator_list', 'args', 'name'), (None, [], None, None))
+FunctionDef     = ist_node('FunctionDef', ('decorator_list', 'name', 'args', 'body'), ([], None, None, []))
 GeneratorExp    = ist_node('GeneratorExp', ('generators', 'elt'), (None, None))
 Global          = ist_node('Global', ('names',), (None,))
 # Gt            = ist_node('Gt', )
@@ -111,7 +113,7 @@ While           = ist_node('While', ('test', 'body', 'orelse'), (None, [], []))
 With            = ist_node('With', ('body', 'optional_vars', 'context_expr'), ([], None, None))
 Yield           = ist_node('Yield', ('value',), (None,))
 alias           = ist_node('alias', ('name', 'asname'), (None, None))
-arguments       = ist_node('arguments', ('args', 'kwarg', 'defaults', 'vararg'), ([], None, [], None))
+arguments       = ist_node('arguments', ('args', 'defaults', 'vararg', 'kwarg'), ([], [], None, None))
 # boolop        = ist_node('boolop', )
 # cmpop         = ist_node('cmpop', )
 comprehension   = ist_node('comprehension', ('target', 'iter', 'ifs'), (None, None, []))
